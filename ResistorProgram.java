@@ -1,7 +1,9 @@
 import java.util.*;
+import java.io.*;
 
 public class ResistorProgram {
     private static ResistorGuide guide;
+    private static ResistorCollection collection;
 
     private static void findResistorByValue(Scanner scanner) {
         System.out.print("Input a resistance in ohms: ");
@@ -26,46 +28,73 @@ public class ResistorProgram {
         System.out.println(Arrays.toString(colors) + " : " + Integer.toString(guide.getResistance(colors)) + " ohms.");
     }
 
-    private static void addResistor() {
-
+    private static void addResistor(Scanner scanner) {
+        System.out.print("Please input a value: ");
+        String resistanceStr = scanner.nextLine();
+        try {
+            int resistance = Integer.parseInt(resistanceStr);
+            collection.add(resistance);
+            System.out.println("Added!");
+        } catch(IllegalArgumentException e) {
+            System.out.println("Please provide a valid numerical value.");
+        }
     }
 
-    private static void removeResistor() {
-
+    private static void removeResistor(Scanner scanner) {
+        System.out.print("Please input a value: ");
+        String resistanceStr = scanner.nextLine();
+        try {
+            int resistance = Integer.parseInt(resistanceStr);
+            collection.remove(resistance);
+            System.out.println("Removed!");
+        } catch(IllegalArgumentException e) {
+            System.out.println("Please provide a valid numerical value.");
+        }
     }
 
     private static void viewCollection() {
-
+        System.out.println();
+        System.out.println(collection.toString());
+        System.out.println();
     }
 
-    private static void findResistorCombos() {
+    private static void findResistorCombos(Scanner scanner) {
 
     }
 
     public static void main(String[] args) {
-        guide = new ResistorGuide();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("To exit at any point, type 'q' and hit ENTER");
-        boolean quit = false;
-        while (!quit) {
-            System.out.println();
-            System.out.println("a) look up a resistor color code by resistance value");
-            System.out.println("b) look up a resistor value by its color code");
-            System.out.println("c) add a resistor to your collection");
-            System.out.println("d) remove a resistor from your collection");
-            System.out.println("e) view your collection");
-            System.out.println("f) use resistors from your collection to create a desired resistance");
-            System.out.print("What would you like to do? ");
-            switch(scanner.nextLine().toLowerCase()){
-                case "a": findResistorByValue(scanner); break;
-                case "b": findResistorByColor(scanner); break;
-                case "c": addResistor(); break;
-                case "d": removeResistor(); break;
-                case "e": viewCollection(); break;
-                case "f": findResistorCombos(); break;
-                case "q": quit = true; break;
-                default: System.out.println("Sorry, that option isn't recognized..."); break;
+        String textFile = "resistors.txt";
+        if (args.length > 2) {
+            textFile = args[2];
+        }
+        try {
+            collection = new ResistorCollection("resistors.txt");
+            guide = new ResistorGuide();
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("To exit at any point, type 'q' and hit ENTER");
+            boolean quit = false;
+            while (!quit) {
+                System.out.println();
+                System.out.println("a) look up a resistor color code by resistance value");
+                System.out.println("b) look up a resistor value by its color code");
+                System.out.println("c) add a resistor to your collection");
+                System.out.println("d) remove a resistor from your collection");
+                System.out.println("e) view your collection");
+                System.out.println("f) use resistors from your collection to create a desired resistance");
+                System.out.print("What would you like to do? ");
+                switch(scanner.nextLine().toLowerCase()){
+                    case "a": findResistorByValue(scanner); break;
+                    case "b": findResistorByColor(scanner); break;
+                    case "c": addResistor(scanner); break;
+                    case "d": removeResistor(scanner); break;
+                    case "e": viewCollection(); break;
+                    case "f": findResistorCombos(scanner); break;
+                    case "q": collection.save(); quit = true; break;
+                   default: System.out.println("Sorry, that option isn't recognized..."); break;
+                }
             }
+        } catch(Exception e) {
+            System.out.println("The text file " + textFile + " was not found. Terminating...");
         }
     }
     
