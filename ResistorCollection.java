@@ -19,12 +19,13 @@ public class ResistorCollection {
     public ResistorCollection (String textFile) throws FileNotFoundException, IOException{
         this.textFile = textFile;
         map = new TreeMap<Integer, Integer>();
+        load();
     }
 
     public void add(int value) {
         if (map.containsKey(value)) {
             int numResistors = map.get(value);
-            map.put(value, numResistors++);
+            map.put(value, numResistors+1);
         } else {
             map.put(value, 1);
         }
@@ -33,7 +34,7 @@ public class ResistorCollection {
     public void remove(int value) {
         if (map.containsKey(value)) {
             int numResistors = map.get(value);
-            map.put(value, numResistors--);
+            map.put(value, numResistors-1);
         }
     }
 
@@ -46,6 +47,10 @@ public class ResistorCollection {
     }
 
     public String toString() {
-        return "**placeholder**";
+        StringBuilder sb = new StringBuilder();
+        for (int key : map.keySet()) {
+            sb.append(Integer.toString(key)).append(":").append(map.get(key).toString()).append("\n");
+        }
+        return sb.toString();
     }
 }

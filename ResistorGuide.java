@@ -1,4 +1,5 @@
 import java.util.*;
+import java.lang.Math.*;
 
 public class ResistorGuide {
     private static String colorMap[];
@@ -39,18 +40,20 @@ public class ResistorGuide {
         }
         int firstBand = resistance / (multiplier*10);
         int secondBand = (resistance % (multiplier*10)) / multiplier;
+        //System.out.println("firstband = " + Integer.toString(firstBand));
+        //System.out.println("secondband = " + Integer.toString(secondBand));
+        //System.out.println("log10(Multiplier)=" + Integer.toString((int)Math.log10(multiplier)));
         colors[0] = colorMap[firstBand];
         colors[1] = colorMap[secondBand];
-        colors[2] = colorMap[multiplier];
+        colors[2] = colorMap[(int)Math.log10(multiplier)];
         return colors;
-        //return new StringBuilder(colorMap[firstBand]).append(colorMap[secondBand]).append(colorMap[multiplier]).toString();
     }
 
     public int getResistance(String[] colors){
         assert (colors.length == 3);
         int resistance = colorToNumber(colors[0])*10;
         resistance += colorToNumber(colors[1]);
-        return resistance * colorToNumber(colors[2]);
+        return resistance * (int)Math.pow(10, colorToNumber(colors[2])); //10^colorToNumber(colors[2]);
     }
 
     public String toString() {

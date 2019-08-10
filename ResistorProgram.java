@@ -28,6 +28,7 @@ public class ResistorProgram {
         System.out.println(Arrays.toString(colors) + " : " + Integer.toString(guide.getResistance(colors)) + " ohms.");
     }
 
+    // TODO: include adding by color code
     private static void addResistor(Scanner scanner) {
         System.out.print("Please input a value: ");
         String resistanceStr = scanner.nextLine();
@@ -55,7 +56,6 @@ public class ResistorProgram {
     private static void viewCollection() {
         System.out.println();
         System.out.println(collection.toString());
-        System.out.println();
     }
 
     private static void findResistorCombos(Scanner scanner) {
@@ -81,7 +81,7 @@ public class ResistorProgram {
                 System.out.println("d) remove a resistor from your collection");
                 System.out.println("e) view your collection");
                 System.out.println("f) use resistors from your collection to create a desired resistance");
-                System.out.print("What would you like to do? ");
+                System.out.print("\nWhat would you like to do? ");
                 switch(scanner.nextLine().toLowerCase()){
                     case "a": findResistorByValue(scanner); break;
                     case "b": findResistorByColor(scanner); break;
@@ -94,7 +94,7 @@ public class ResistorProgram {
                 }
             }
         } catch(Exception e) {
-            System.out.println("The text file " + textFile + " was not found. Terminating...");
+            System.out.println("The text file " + textFile + " was not found or is in the wrong format. Terminating...");
         }
     }
     
