@@ -46,6 +46,16 @@ public class ResistorCollection {
         writer.close();
     }
 
+    public ArrayList<Integer> getList () {
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        for (int key: map.keySet()) {
+            for (int i = 0; i < map.get(key); i++) {
+                list.add(key);
+            }
+        }
+        return list;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int key : map.keySet()) {

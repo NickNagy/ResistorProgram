@@ -58,6 +58,32 @@ public class ResistorProgram {
         System.out.println(collection.toString());
     }
 
+    /*
+    get set of resistors
+    while (! set.empty)
+        remove(resistor)
+        for (all other resistors in set)
+
+    */
+    private static void findResistorCombos(int target, int margin, int maxNumResistors) {
+        ArrayList<Integer> resistorList = collection.getList();
+        Queue<ResistorPattern> queue = new LinkedList<ResistorPattern>();
+        int numResistors = 1;
+        //for (int resistor: resistorList) {
+        //    queue.add(new ArrayList<Integer>.add(resistor));
+        //}
+        ResistorPattern headList = queue.remove();
+        while (!queue.isEmpty() && headList.size() < maxNumResistors) {
+            // if series(headList, next) == target: break
+            // queue.add(series(headList, next))
+            // if parallel(headList, next) == target: break
+            // queue.add(series(headList, next))
+            headList = queue.remove();
+        }
+    }
+
+
+    // temporary assumption: function won't be used for < 2 resistors
     private static void findResistorCombos(Scanner scanner) {
 
     }
