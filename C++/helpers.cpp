@@ -8,6 +8,15 @@ using namespace std;
     return stream.str();
 }*/
 
+string intVectorToString(vector<int> v) {
+    ostringstream oss;
+    if (!v.empty()) {
+        copy(v.begin(), v.end()-1, ostream_iterator<int>(oss, ","));
+        oss << v.back();
+    }
+    return oss.str();   
+}
+
 string floatToString(float f, int precision) {
     stringstream ss;
     ss << fixed << setprecision(precision) << f;

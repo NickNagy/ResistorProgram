@@ -9,15 +9,15 @@ void CircuitEdge::computeLocalResistance() {
 }
 
 void CircuitEdge::insert(int r) {
-    resistors.insert(r);//push_back(r);
+    resistors.push_back(r);//push_back(r);
     computeLocalResistance();
 }
 
 // TODO: fix
 int CircuitEdge::remove(int r) {
-    auto itr = resistors.find(r);
-    if (itr!=resistors.end()) {
-        resistors.erase(itr);
+    vector<int>::iterator firstInstance = find(resistors.begin(), resistors.end(), r);
+    if (firstInstance!=resistors.end()) {
+        resistors.erase(firstInstance);
         computeLocalResistance();
         return 1;
     }
@@ -33,8 +33,8 @@ float CircuitEdge::getTotalResistance(){
     return nonLocalResistance*localResistance/(localResistance + nonLocalResistance); // careful of overflow    
 }
 
-multiset<int> CircuitEdge::getResistors() {
-    multiset<int> resistorsCopy = resistors;
+vector<int> CircuitEdge::getResistors() {
+    vector<int> resistorsCopy = resistors;
     return resistorsCopy;
 }
 
@@ -60,55 +60,56 @@ void CircuitMatrix::resize() {
     matrix[size-1][size-1] = matrix[0][0];    
 }
 
-void CircuitMatrix::refresh(int x, int y) {
-    int i = x-1;
+void CircuitMatrix::refresh(int n1, int n2) {
+    int i = n1-1;
     while (i >= 0) {
-        matrix[i][y]->nonLocalResistance += matrix[i+1][y]->getTotalResistance() + matrix[i][y-x+i]->getTotalResistance();
+        matrix[i][n2]->nonLocalResistance += matrix[i+1][n2]->getTotalResistance() + matrix[i][n2-n1+i]->getTotalResistance();
         i--;
     }
 }
 
-int CircuitMatrix::layResistor(int value, int x, int y) {
+int CircuitMatrix::layResistor(int value, int n1, int n2) {
     // TODO: can I simplify this at all?
-    if (x < 0 || y < 0 || value <= 0 || x == y || x > size || y > size) {
+    if (n1 < 0 || n2 < 0 || value <= 0 || n1 == n2 || n1 > size || n2 > size) {
         return 0;
     }
-    if (x == size || y == size) {
+    if (n1 == size || n2 == size) {
         resize();
     }
-    matrix[x][y]->insert(value);
-    if (x > 0 && y > 0) {
-        matrix[x][y]->nonLocalResistance = matrix[x-1][y]->getTotalResistance() + matrix[x][y-1]->getTotalResistance();
+    matrix[n1][n2]->insert(value);
+    if (n1 > 0 && n2 > 0) {
+        matrix[n1][n2]->nonLocalResistance = matrix[n1-1][n2]->getTotalResistance() + matrix[n1][n2-1]->getTotalResistance();
     }
-    refresh(x,y);
+    refresh(n1,n2);
     return 1;    
 }
 
-int CircuitMatrix::removeResistor(int value, int x, int y) {
+int CircuitMatrix::removeResistor(int value, int n1, int n2) {
     // TODO: can I simplify this at all?
-    if (x < 0 || y < 0 || value <= 0 || x == y || x > size || y > size) {
+    if (n1 < 0 || n2 < 0 || value <= 0 || n1 == n2 || n1 > size || n2 > size) {
         return 0;
     }
-    int success = matrix[x][y]->remove(value);
+    int success = matrix[n1][n2]->remove(value);
     if (!success) return 0;
-    refresh(x,y);
+    refresh(n1,n2);
     return 1;
 }
 
 unsigned int CircuitMatrix::getSize() { return size; }
 
-multiset<int> CircuitMatrix::getResistors(int x, int y) {
-    return matrix[x][y]->getResistors();
+vector<int> CircuitMatrix::getResistors(int n1, int n2) {
+    return matrix[n1][n2]->getResistors();
 }
 
-float CircuitMatrix::getResistance(int x, int y) { return matrix[x][y]->getTotalResistance(); }
+float CircuitMatrix::getResistance(int n1, int n2) { return matrix[n1][n2]->getTotalResistance(); }
 
 float CircuitMatrix::getTotalResistance() { return getResistance(0, size-1); }
 
 int CircuitMatrix::hashCode() {
-    return 0;
+    return size*getTotalResistance();
 }
 
+// TODO: optimize using ostringstream
 string CircuitMatrix::toString() {
     string s = "\nMatrix:\n[[";
     for (unsigned int i = 0; i < size-1; i++) {
