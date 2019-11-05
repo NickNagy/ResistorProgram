@@ -1,3 +1,9 @@
+/* Nick Nagy
+
+This file defines some functions that are used by different files and classes in the same project directory
+
+*/
+
 #include "helpers.h"
 
 using namespace std;
@@ -8,6 +14,7 @@ using namespace std;
     return stream.str();
 }*/
 
+// returns a string representation of vector v
 string intVectorToString(vector<int> v) {
     ostringstream oss;
     if (!v.empty()) {
@@ -17,12 +24,14 @@ string intVectorToString(vector<int> v) {
     return oss.str();   
 }
 
+// returns f as a string with (precision) number of digits after the decimal
 string floatToString(float f, int precision) {
     stringstream ss;
     ss << fixed << setprecision(precision) << f;
     return ss.str();
 }
 
+// returns the appropriate digit based on the color defined by string s, to match the resistor color code guide
 int colorToNumber(string s) {
     if (!s.compare("Black"))  return 0;
     if (!s.compare("Brown"))  return 1;
@@ -37,6 +46,7 @@ int colorToNumber(string s) {
     return -1;
 }
 
+// returns a string vector of size 3 - each string defines one of the three resistor band colors corresponding to the given resistance
 string * getColors(int resistance) {
     string colorStrings[] = {"Black", "Brown", "Red", "Orange", "Yellow", "Green", "Blue", "Violet", "Grey", "White"};
     string * colors = new string[3];
@@ -57,6 +67,7 @@ string * getColors(int resistance) {
     return colors;
 }
 
+// returns the resistance corresponding to the three band colors passed in colors
 int getResistance(string * colors) {
     // assumes length(colors)==3
     int resistance = colorToNumber(colors[0]) * 10;

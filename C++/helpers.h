@@ -1,3 +1,9 @@
+/* Nick Nagy
+
+This file defines some functions that are used by different files and classes in the same project directory
+
+*/
+
 #ifndef HELPERS_H
 #define HELPERS_H
 

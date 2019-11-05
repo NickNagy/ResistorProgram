@@ -1,3 +1,10 @@
+/* Nick Nagy
+
+This file defines all functions for the graphics component of the program. It uses OpenGL libraries
+to display circuits defined by the CircuitMatrix class
+
+*/
+
 #ifndef CIRCUITGRAPHICS_H
 #define CIRCUITGRAPHICS_H
 
@@ -11,6 +18,7 @@
 #define WINDOW_CENTER_Y     100
 #define RESISTOR_BODY_HEIGHT 30
 
+// simplifies OpenGL RGB color passes... drawback is it's unecessary additional storage space
 static const unsigned char black[] = {0, 0, 0};
 static const unsigned char brown[] = {139, 69, 19};
 static const unsigned char red[] = {255, 0, 0};
