@@ -79,6 +79,12 @@ CircuitMatrix::CircuitMatrix() {
     matrix[1][1] = nul;
 }
 
+// destructor
+// frees matrix from memory
+CircuitMatrix::~CircuitMatrix() {
+    vector<vector<CircuitEdge*>>().swap(matrix);
+}
+
 // resizes matrix to (size+1)*(size+1), then updates size field
 void CircuitMatrix::resize() {
     size++;
@@ -160,7 +166,7 @@ int CircuitMatrix::hashCode() {
 }
 
 // TODO:
-int CircuitMatrix:equals(CircuitMatrix *other) {
+int CircuitMatrix::equals(CircuitMatrix *other) {
     return 0;
 }
 

@@ -58,6 +58,7 @@ class CircuitMatrix {
         void refresh(int n1, int n2);
     public:
         CircuitMatrix();
+        ~CircuitMatrix();
         int layResistor(int value, int n1, int n2);
         int removeResistor(int value, int n1, int n2);
         unsigned int getSize();
