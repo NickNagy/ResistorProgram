@@ -38,12 +38,16 @@ using namespace std;
 class CircuitEdge{
     private:
         float localResistance = 0.0;
+        int numResistors = 0;
         vector<int> resistors;
         void computeLocalResistance();
     public: 
+        CircuitEdge();
+        ~CircuitEdge();
         float nonLocalResistance = 0.0;
         void insert(int r);
         int remove(int r);
+        int getNumResistors();
         float getLocalResistance();
         float getTotalResistance();
         vector<int> getResistors();
@@ -54,7 +58,7 @@ class CircuitMatrix {
     private:
         unsigned int size = 2;
         vector<vector<CircuitEdge*>> matrix = vector<vector<CircuitEdge*>>(size, vector<CircuitEdge*>(size));
-        void resize();
+        void resize(unsigned int newSize);
         void refresh(int n1, int n2);
     public:
         CircuitMatrix();

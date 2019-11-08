@@ -24,18 +24,27 @@ TotalResistance(n0, n2) = LocalResistance(n0, n2) || NonLocalResistance(n0, n2) 
 
 #include "circuit.h"
 
+// constructor
+CircuitEdge::CircuitEdge() {}
+
+// destructor
+CircuitEdge::~CircuitEdge() {
+    vector<int>().swap(resistors);
+}
+
 // computes the local parallel equivalent resistance of all resistors connected to both vertices the edge spans
 void CircuitEdge::computeLocalResistance() {
     float sum = 0.0;
     for (int r: resistors) {
         sum+=(1.0/r);
     }
-    localResistance = 1.0 / sum;
+    localResistance = (sum == 0.0) ? 0.0 : 1.0/sum;
 }
 
 // adds a resistor with resistance r to the edge, and updates the edge's "local" resistance
 void CircuitEdge::insert(int r) {
     resistors.push_back(r);//push_back(r);
+    numResistors++;
     computeLocalResistance();
 }
 
@@ -44,10 +53,15 @@ int CircuitEdge::remove(int r) {
     vector<int>::iterator firstInstance = find(resistors.begin(), resistors.end(), r);
     if (firstInstance!=resistors.end()) {
         resistors.erase(firstInstance);
+        numResistors--;
         computeLocalResistance();
         return 1;
     }
     return 0;
+}
+
+int CircuitEdge::getNumResistors() {
+    return numResistors;
 }
 
 // returns the parallel equivalent resistance of the edge
@@ -86,17 +100,19 @@ CircuitMatrix::~CircuitMatrix() {
 }
 
 // resizes matrix to (size+1)*(size+1), then updates size field
-void CircuitMatrix::resize() {
-    size++;
-    matrix.resize(size);
-    for (int i = 0; i < size; i++) {
-        matrix[i].resize(size);
+void CircuitMatrix::resize(unsigned int newSize) {
+    matrix.resize(newSize);
+    for (int i = 0; i < newSize; i++) {
+        matrix[i].resize(newSize);
     }
-    for (int j = 0; j < size-1; j++) {
-        matrix[j][size-1] = new CircuitEdge();
-        matrix[size-1][j] = matrix[j][size-1];
+    if (newSize > size) {
+        for (int j = 0; j < newSize-1; j++) {
+            matrix[j][newSize-1] = new CircuitEdge();
+            matrix[newSize-1][j] = matrix[j][newSize-1];
+        }
+        matrix[newSize-1][newSize-1] = matrix[0][0];  
     }
-    matrix[size-1][size-1] = matrix[0][0];    
+    size = newSize;
 }
 
 // updates all affected edges' non-local resistances after inserting/removing a new resistor into/from the circuit
@@ -113,15 +129,18 @@ void CircuitMatrix::refresh(int n1, int n2) {
 //      - the resistance value is reasonable
 // otherwise, returns 0
 int CircuitMatrix::layResistor(int value, int n1, int n2) {
-    // TODO: can I simplify this at all?
-    if (n1 < 0 || n2 < 0 || value <= 0 || n1 == n2 || n1 > size || n2 > size) {
-        return 0;
+    if (n1 == n2) return 0;
+    if (n1 > n2) {
+        int temp = n1;
+        n1 = n2;
+        n2 = temp;
     }
-    if (n1 == size || n2 == size) {
-        resize();
+    if (n1 < 0 || value <= 0 || n2 > size || (n2==size && n1 < size-1)) return 0;
+    if (n2 == size) {
+        resize(size + 1);
     }
     matrix[n1][n2]->insert(value);
-    if (n1 > 0 && n2 > 0) {
+    if (n1 > 0) {
         matrix[n1][n2]->nonLocalResistance = matrix[n1-1][n2]->getTotalResistance() + matrix[n1][n2-1]->getTotalResistance();
     }
     refresh(n1,n2);
@@ -133,12 +152,19 @@ int CircuitMatrix::layResistor(int value, int n1, int n2) {
 //      - the resistor value is reasonable and exists in the edge
 // otherwise, returns 0
 int CircuitMatrix::removeResistor(int value, int n1, int n2) {
-    // TODO: can I simplify this at all?
-    if (n1 < 0 || n2 < 0 || value <= 0 || n1 == n2 || n1 > size || n2 > size) {
-        return 0;
+    if (n1 == n2) return 0;
+    if (n1 > n2) {
+        int temp = n1;
+        n1 = n2;
+        n2 = temp;
     }
+    if (n1 < 0 || value <= 0 || n2 > size) return 0;
+    // check to make sure that removing the resistor won't cause a hole in the circuit
+    int holeCheck = matrix[n1][n2]->getNumResistors() - 1;
+    if (n2 < size - 1 && holeCheck<1) return 0;
     int success = matrix[n1][n2]->remove(value);
     if (!success) return 0;
+    if (size > 2 && n2 == size-1 && !matrix[n1][n2]->getNumResistors()) resize(size-1);
     refresh(n1,n2);
     return 1;
 }
