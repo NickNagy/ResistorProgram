@@ -38,6 +38,7 @@ string floatToString(float f, int precision) {
 //  subtractor = {2, 5, 7}
 //  result = {1, 3, 4, 5, 6}
 vector<unsigned int> getRemainingVector(vector<unsigned int> original, vector<unsigned int> subtractor) {
+    if (!original.size()) return original;
     vector<unsigned int> result = original;
     for (unsigned int i: subtractor) {
         vector<unsigned int>::iterator it = find(result.begin(), result.end(), i);

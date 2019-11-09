@@ -38,7 +38,6 @@ using namespace std;
 class CircuitEdge{
     private:
         float localResistance = 0.0;
-        unsigned char numResistors = 0;
         vector<unsigned int> resistors;
         void computeLocalResistance();
     public: 
@@ -47,7 +46,6 @@ class CircuitEdge{
         float nonLocalResistance = 0.0;
         void insert(unsigned int r);
         char remove(unsigned int r);
-        unsigned char getNumResistors();
         float getLocalResistance();
         float getTotalResistance();
         vector<unsigned int> getResistors();
@@ -71,6 +69,7 @@ class CircuitMatrix {
         float getTotalResistance();
         int hashCode();
         char equals(CircuitMatrix * other); // TODO
+        CircuitMatrix * copy();
         string toString();
 };
 
