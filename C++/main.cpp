@@ -45,19 +45,21 @@ CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxRe
     if (sum >= targetResistance*(1-MoE)) {
         unordered_set<int> circuitHashSet;
         CircuitMatrix * current;
-        queue<CircuitMatrix*> circuitQueue; 
+        CMTracker * tracker;
+        queue<CMTracker*> circuitQueue; 
         unsigned int minDifference = 0xFFFF;
         unsigned int difference;
+        unsigned int r;
+        unsigned int i;
         // initialize BFS queue with a CircuitMatrix* for each resistor in the set -- ignore repeated resistor values
-        for (int i = 0; i < resistors.size(); i++) {
-            int r = resistors.at(i);
+        for (i = 0; i < resistors.size(); i++) {
+            r = resistors.at(i);
             current = new CircuitMatrix();
             current->layResistor(r, 0, 1);
             difference = abs(current->getTotalResistance() - targetResistance);
             if (difference <= targetDifference) {
-                bestCandidate = current; // I think
-                return bestCandidate;
-                //return current;
+                explain(current);
+                return current;
             }
             if (difference < minDifference) {
                 minDifference = difference;
@@ -66,48 +68,58 @@ CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxRe
             int currentHashCode = current->hashCode();
             if (circuitHashSet.find(currentHashCode) == circuitHashSet.end()){ // segfault happens in this check
                 //cout << "Pushing to queue:\n" << current->toString() << " with address=" << current << endl;
-                circuitQueue.push(current);
+                tracker = new CMTracker;
+                vector<unsigned int> v{r};
+                *tracker = {current, v};
+                circuitQueue.push(tracker);
                 circuitHashSet.insert(currentHashCode);
             }
         }
         // continue BFS by adding new resistors to each pulled CM* from the queue, and re-queueing, until a circuit with ~target equiv
         // resistance is found
+        unsigned int j;
         vector <unsigned int> resistorsLeft;
         while (!circuitQueue.empty()) {
-            current = circuitQueue.front();
+            tracker = circuitQueue.front();
+            current = tracker->cMx;
             cout << "**********\nCurrent Matrix: \n" << current->toString() << endl;
             circuitQueue.pop();
             // need to skip over resistors that are already in the current circuit!
-            resistorsLeft = getRemainingVector(resistors, resistors);//current->getResistors());
-            for (unsigned int i = 0; i < resistorsLeft.size(); i++) { // <- this is gonna fail!!!
+            resistorsLeft = getRemainingVector(resistors, tracker->seenResistors);//current->getResistors());
+            for (unsigned int r : resistorsLeft) { // <- this is gonna fail!!!
             /* also, there is probably a way to check in the first loop that something has
             already been tried before inserting into matrix, like if (r has equaled resistors->get(i)) */
-                int r = resistorsLeft.at(i);
                 cout << "Looking at resistor: " << r << endl;
                 int size = current->getSize();
                 // TODO: we'd want to check series connections before parallel
-                for (int i = 0; i < size; i++) {
-                    for (int j = i; j < size+1; j++) {
+                for (i = 0; i < size; i++) {
+                    for (j = i; j < size+1; j++) {
                         cout << "Trying to set " << r << " between nodes " << i << " and " << j << endl;
                         // have to check this condition first b/c we need to know when to re-remove the resistor again
-                        if (current -> layResistor(r,i,j)) {
-                            if (size < maxResistors && i!=j && circuitHashSet.find(current->hashCode())==circuitHashSet.end()) {
-                                cout << "success!\nNow current = \n" << current->toString();
-                                difference = abs(current->getTotalResistance() - targetResistance);
+                        CircuitMatrix * currentCopy = new CircuitMatrix();
+                        *currentCopy = *current;
+                        if (currentCopy -> layResistor(r,i,j)) {
+                            if (size < maxResistors && i!=j && circuitHashSet.find(currentCopy->hashCode())==circuitHashSet.end()) {
+                                cout << "success!\nNow current = \n" << currentCopy->toString();
+                                difference = abs(currentCopy->getTotalResistance() - targetResistance);
                                 //cout << "difference=" << difference << "; aiming to be < " << targetDifference << endl;
                                 if (difference <= targetDifference) {
-                                    explain(current);
-                                    return current;
+                                    explain(currentCopy);
+                                    return currentCopy;
                                 }
                                 if (difference < minDifference) {
                                     minDifference = difference;
-                                    bestCandidate = current;
+                                    bestCandidate = currentCopy;
                                 }
                                 //cout << "current: " << current->toString();
                                 cout << "Best current: " << bestCandidate->toString();
-                                cout << "Pushing to queue:\n" << current->toString();
-                                circuitQueue.push(current);
-                                circuitHashSet.insert(current->hashCode());
+                                cout << "Pushing to queue:\n" << currentCopy->toString();
+                                CMTracker * trackerCopy = new CMTracker;
+                                vector<unsigned int> seenResistorsCopy = tracker->seenResistors;
+                                seenResistorsCopy.push_back(r);
+                                *trackerCopy = {currentCopy, seenResistorsCopy};
+                                circuitQueue.push(trackerCopy);
+                                circuitHashSet.insert(currentCopy->hashCode());
                             }
                             cout << "Lastly, we re-remove the just newly inserted resistor before checking the next one...\n";
                             current -> removeResistor(r,i,j);
