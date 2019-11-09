@@ -29,28 +29,28 @@ CircuitEdge::CircuitEdge() {}
 
 // destructor
 CircuitEdge::~CircuitEdge() {
-    vector<int>().swap(resistors);
+    vector<unsigned int>().swap(resistors);
 }
 
 // computes the local parallel equivalent resistance of all resistors connected to both vertices the edge spans
 void CircuitEdge::computeLocalResistance() {
     float sum = 0.0;
-    for (int r: resistors) {
+    for (unsigned int r: resistors) {
         sum+=(1.0/r);
     }
     localResistance = (sum == 0.0) ? 0.0 : 1.0/sum;
 }
 
 // adds a resistor with resistance r to the edge, and updates the edge's "local" resistance
-void CircuitEdge::insert(int r) {
+void CircuitEdge::insert(unsigned int r) {
     resistors.push_back(r);//push_back(r);
     numResistors++;
     computeLocalResistance();
 }
 
 // removes a single instance of resistance r from the edge resistors, if found
-int CircuitEdge::remove(int r) {
-    vector<int>::iterator firstInstance = find(resistors.begin(), resistors.end(), r);
+char CircuitEdge::remove(unsigned int r) {
+    vector<unsigned int>::iterator firstInstance = find(resistors.begin(), resistors.end(), r);
     if (firstInstance!=resistors.end()) {
         resistors.erase(firstInstance);
         numResistors--;
@@ -60,7 +60,7 @@ int CircuitEdge::remove(int r) {
     return 0;
 }
 
-int CircuitEdge::getNumResistors() {
+unsigned char CircuitEdge::getNumResistors() {
     return numResistors;
 }
 
@@ -76,8 +76,8 @@ float CircuitEdge::getTotalResistance(){
 }
 
 // returns the set of resistors directly connected between both edges
-vector<int> CircuitEdge::getResistors() {
-    vector<int> resistorsCopy = resistors;
+vector<unsigned int> CircuitEdge::getResistors() {
+    vector<unsigned int> resistorsCopy = resistors;
     return resistorsCopy;
 }
 
@@ -102,11 +102,11 @@ CircuitMatrix::~CircuitMatrix() {
 // resizes matrix to (size+1)*(size+1), then updates size field
 void CircuitMatrix::resize(unsigned int newSize) {
     matrix.resize(newSize);
-    for (int i = 0; i < newSize; i++) {
+    for (unsigned int i = 0; i < newSize; i++) {
         matrix[i].resize(newSize);
     }
     if (newSize > size) {
-        for (int j = 0; j < newSize-1; j++) {
+        for (unsigned int j = 0; j < newSize-1; j++) {
             matrix[j][newSize-1] = new CircuitEdge();
             matrix[newSize-1][j] = matrix[j][newSize-1];
         }
@@ -116,7 +116,7 @@ void CircuitMatrix::resize(unsigned int newSize) {
 }
 
 // updates all affected edges' non-local resistances after inserting/removing a new resistor into/from the circuit
-void CircuitMatrix::refresh(int n1, int n2) {
+void CircuitMatrix::refresh(unsigned n1, unsigned n2) {
     int i = n1-1;
     while (i >= 0) {
         matrix[i][n2]->nonLocalResistance += matrix[i+1][n2]->getTotalResistance() + matrix[i][n2-n1+i]->getTotalResistance();
@@ -128,14 +128,14 @@ void CircuitMatrix::refresh(int n1, int n2) {
 //      - the two nodes n1 and n2 exist and that they are not the same node
 //      - the resistance value is reasonable
 // otherwise, returns 0
-int CircuitMatrix::layResistor(int value, int n1, int n2) {
+char CircuitMatrix::layResistor(unsigned value, unsigned int n1, unsigned int n2) {
     if (n1 == n2) return 0;
     if (n1 > n2) {
         int temp = n1;
         n1 = n2;
         n2 = temp;
     }
-    if (n1 < 0 || value <= 0 || n2 > size || (n2==size && n1 < size-1)) return 0;
+    if (value== 0 || n2 > size || (n2==size && n1 < size-1)) return 0;
     if (n2 == size) {
         resize(size + 1);
     }
@@ -151,14 +151,14 @@ int CircuitMatrix::layResistor(int value, int n1, int n2) {
 //      - the two nodes n1 and n2 exist and they are not the same node
 //      - the resistor value is reasonable and exists in the edge
 // otherwise, returns 0
-int CircuitMatrix::removeResistor(int value, int n1, int n2) {
+char CircuitMatrix::removeResistor(unsigned int value, unsigned int n1, unsigned int n2) {
     if (n1 == n2) return 0;
     if (n1 > n2) {
-        int temp = n1;
+        unsigned int temp = n1;
         n1 = n2;
         n2 = temp;
     }
-    if (n1 < 0 || value <= 0 || n2 > size) return 0;
+    if (value== 0 || n2 > size) return 0;
     // check to make sure that removing the resistor won't cause a hole in the circuit
     int holeCheck = matrix[n1][n2]->getNumResistors() - 1;
     if (n2 < size - 1 && holeCheck<1) return 0;
@@ -173,12 +173,10 @@ int CircuitMatrix::removeResistor(int value, int n1, int n2) {
 unsigned int CircuitMatrix::getSize() { return size; }
 
 // returns the set of resistors directly connected between nodes n1 and n2
-vector<int> CircuitMatrix::getResistors(int n1, int n2) {
-    return matrix[n1][n2]->getResistors();
-}
+vector<unsigned int> CircuitMatrix::getResistors(unsigned int n1, unsigned int n2) { return matrix[n1][n2]->getResistors(); }
 
 // returns the total equivalent parallel resistance between nodes n1 and n2
-float CircuitMatrix::getResistance(int n1, int n2) { return matrix[n1][n2]->getTotalResistance(); }
+float CircuitMatrix::getResistance(unsigned int n1, unsigned int n2) { return matrix[n1][n2]->getTotalResistance(); }
 
 // retursn the total equivalent resistance of the CircuitMatrix from node 0 to node (size-1)
 float CircuitMatrix::getTotalResistance() { return getResistance(0, size-1); }
@@ -192,7 +190,7 @@ int CircuitMatrix::hashCode() {
 }
 
 // TODO:
-int CircuitMatrix::equals(CircuitMatrix *other) {
+char CircuitMatrix::equals(CircuitMatrix *other) {
     return 0;
 }
 

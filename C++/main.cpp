@@ -12,7 +12,7 @@ using namespace std;
 
 typedef struct CMTracker{
     CircuitMatrix * cMx;
-    vector<int> seenResistors;
+    vector<unsigned int> seenResistors;
 } CMTracker;
 
 void explain(CircuitMatrix * m){
@@ -31,7 +31,7 @@ void explain(CircuitMatrix * m){
 
 // TODO: create hash function for CircuitMatrix
 // TODO: should I pass a pointer to a CircuitMatrix in this function??
-CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<int> resistors) {
+CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
     cout << "Searching for a circuit with equivalent resistance in the range of " << targetResistance*(1-MoE) << " and " << targetResistance*(1+MoE) << " using the following resistors:\n";
     cout << "{" << intVectorToString(resistors) << "}\n";
     CircuitMatrix * bestCandidate = new CircuitMatrix();// = CircuitMatrix();
@@ -125,6 +125,6 @@ CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxRe
 }
 
 int main(int argc, char** argv) {
-    vector<int> resistorSet = {100, 100, 500};
-    cMx = findEquivalentResistanceCircuit(600, 3, 0.05, resistorSet);
+    vector<unsigned int> resistorSet = {100, 100, 500};
+    cMx = findEquivalentResistanceCircuit(700, 3, 0.05, resistorSet);
 }

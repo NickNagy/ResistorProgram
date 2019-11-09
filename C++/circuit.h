@@ -38,19 +38,19 @@ using namespace std;
 class CircuitEdge{
     private:
         float localResistance = 0.0;
-        int numResistors = 0;
-        vector<int> resistors;
+        unsigned char numResistors = 0;
+        vector<unsigned int> resistors;
         void computeLocalResistance();
     public: 
         CircuitEdge();
         ~CircuitEdge();
         float nonLocalResistance = 0.0;
-        void insert(int r);
-        int remove(int r);
-        int getNumResistors();
+        void insert(unsigned int r);
+        char remove(unsigned int r);
+        unsigned char getNumResistors();
         float getLocalResistance();
         float getTotalResistance();
-        vector<int> getResistors();
+        vector<unsigned int> getResistors();
 };
 
 // TODO: giving both classes a getResistors function feels redundant
@@ -59,18 +59,18 @@ class CircuitMatrix {
         unsigned int size = 2;
         vector<vector<CircuitEdge*>> matrix = vector<vector<CircuitEdge*>>(size, vector<CircuitEdge*>(size));
         void resize(unsigned int newSize);
-        void refresh(int n1, int n2);
+        void refresh(unsigned int n1, unsigned int n2);
     public:
         CircuitMatrix();
         ~CircuitMatrix();
-        int layResistor(int value, int n1, int n2);
-        int removeResistor(int value, int n1, int n2);
+        char layResistor(unsigned int value, unsigned int n1, unsigned int n2);
+        char removeResistor(unsigned int value, unsigned int n1, unsigned int n2);
         unsigned int getSize();
-        vector<int> getResistors(int n1, int n2);
-        float getResistance(int n1, int n2);
+        vector<unsigned int> getResistors(unsigned int n1, unsigned int n2);
+        float getResistance(unsigned int n1, unsigned int n2);
         float getTotalResistance();
         int hashCode();
-        int equals(CircuitMatrix * other); // TODO
+        char equals(CircuitMatrix * other); // TODO
         string toString();
 };
 

@@ -20,7 +20,7 @@ This file defines some functions that are used by different files and classes in
 using namespace std;
 
 string intSetToString(multiset<int> s);
-string intVectorToString(vector<int> v);
+string intVectorToString(vector<unsigned int> v);
 string floatToString(float f, int precision);
 int colorToNumber(string s);
 string * getColors(int resistance);

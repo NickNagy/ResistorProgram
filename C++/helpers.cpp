@@ -15,10 +15,10 @@ using namespace std;
 }*/
 
 // returns a string representation of vector v
-string intVectorToString(vector<int> v) {
+string intVectorToString(vector<unsigned int> v) {
     ostringstream oss;
     if (!v.empty()) {
-        copy(v.begin(), v.end()-1, ostream_iterator<int>(oss, ","));
+        copy(v.begin(), v.end()-1, ostream_iterator<unsigned int>(oss, ","));
         oss << v.back();
     }
     return oss.str();   
