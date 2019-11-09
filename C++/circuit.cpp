@@ -167,9 +167,12 @@ Circuit * Circuit::copy() {
     thisCopy->resize(size);
     for (unsigned int i = 0; i < size-1; i++) {
         for (unsigned int j = i; j < size; j++) {
-            for (unsigned int r: getResistors(i,j)) {
-                thisCopy->layResistor(r,i,j);
-            }
+            if (i!=j) {
+                for (unsigned int r: getResistors(i,j)) {
+                    thisCopy[i][j]->resistors.push_back(r);
+                }
+                thisCopy[i][j]->computeLocalResistance();
+            }    
         }
     }
     return thisCopy;
