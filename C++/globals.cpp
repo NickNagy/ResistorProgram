@@ -1,4 +1,4 @@
 #include "globals.h"
 
-CircuitMatrix * cMx;
+Circuit * circuit;
 char graphicsInitialized = 0;

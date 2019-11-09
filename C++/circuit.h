@@ -1,11 +1,11 @@
 /* Nick Nagy
 
-This file defines the methods of classes CircuitEdge and CircuitMatrix.
+This file defines the methods of classes CircuitEdge and Circuit.
 
 In the CircuitEdge class, resistive connections and nodes are analogous to the edge and its vertices, respectively.
 The class is used to keep track of resistors and parallel-equivalent resistances between two nodes.
 
-The CircuitMatrix class can be used to construct an entire resistive circuit with multiple nodes, and can be used to 
+The Circuit class can be used to construct an entire resistive circuit with multiple nodes, and can be used to 
 measure equivalent resistances across different parts of the circuit.
 
 "Local resistance" here refers to the equivalent resistance of resistors in parallel connected DIRECTLY to the two
@@ -35,32 +35,23 @@ TotalResistance(n0, n2) = LocalResistance(n0, n2) || NonLocalResistance(n0, n2) 
 
 using namespace std;
 
-class CircuitEdge{
-    private:
-        float localResistance = 0.0;
-        vector<unsigned int> resistors;
-        void computeLocalResistance();
-    public: 
-        CircuitEdge();
-        ~CircuitEdge();
-        float nonLocalResistance = 0.0;
-        void insert(unsigned int r);
-        char remove(unsigned int r);
-        float getLocalResistance();
-        float getTotalResistance();
-        vector<unsigned int> getResistors();
-};
-
 // TODO: giving both classes a getResistors function feels redundant
-class CircuitMatrix {
+class Circuit {
     private:
+        typedef struct CircuitEdge {
+            float localResistance = 0.0;
+            float nonLocalResistance = 0.0;
+            vector<unsigned int> resistors;
+            float getTotalResistance();
+            void computeLocalResistance();
+        } CircuitEdge;
         unsigned int size = 2;
         vector<vector<CircuitEdge*>> matrix = vector<vector<CircuitEdge*>>(size, vector<CircuitEdge*>(size));
         void resize(unsigned int newSize);
         void refresh(unsigned int n1, unsigned int n2);
     public:
-        CircuitMatrix();
-        ~CircuitMatrix();
+        Circuit();
+        ~Circuit();
         char layResistor(unsigned int value, unsigned int n1, unsigned int n2);
         char removeResistor(unsigned int value, unsigned int n1, unsigned int n2);
         unsigned int getSize();
@@ -68,8 +59,8 @@ class CircuitMatrix {
         float getResistance(unsigned int n1, unsigned int n2);
         float getTotalResistance();
         int hashCode();
-        char equals(CircuitMatrix * other); // TODO
-        CircuitMatrix * copy();
+        char equals(Circuit * other); // TODO
+        Circuit * copy();
         string toString();
 };
 

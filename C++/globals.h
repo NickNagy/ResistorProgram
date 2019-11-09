@@ -3,7 +3,7 @@
 
 #include "circuit.h"
 
-extern CircuitMatrix * cMx;
+extern Circuit * circuit;
 extern char graphicsInitialized;
 
 #endif

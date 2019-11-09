@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void explain(CircuitMatrix * m){
+void explain(Circuit * m){
     cout << "Found a circuit with total resistance: " << m->getTotalResistance() << " ohms.\n";
     cout << "Explanation:\n";
     int size = m->getSize();
@@ -32,34 +32,34 @@ void explain(CircuitMatrix * m){
     } 
 }
 
-CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
+Circuit * findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
     // I do not like this struct, and I do NOT think it should exist anywhere outside of this function, but it is better than many alternatives
     typedef struct CMTracker{
-        CircuitMatrix * cMx;
+        Circuit * cMx;
         vector<unsigned int> seenResistors;
     } CMTracker;
     cout << "Searching for a circuit with equivalent resistance in the range of " << targetResistance*(1-MoE) << " and " << targetResistance*(1+MoE) << " using the following resistors:\n";
     cout << "{" << intVectorToString(resistors) << "}\n";
-    CircuitMatrix * bestCandidate = new CircuitMatrix();
+    Circuit * bestCandidate = new Circuit();
     float targetDifference = MoE*targetResistance;
     unsigned int sum = 0;
-    // should return a NULL CircuitMatrix object if sum(resistors) < target 
+    // should return a NULL Circuit object if sum(resistors) < target 
     for (int r: resistors) {
         sum += r;
     }
     if (sum >= targetResistance*(1-MoE)) {
         unordered_set<int> circuitHashSet;
-        CircuitMatrix * current;
+        Circuit * current;
         CMTracker * tracker;
         queue<CMTracker*> circuitQueue; 
         unsigned int minDifference = 0xFFFF;
         unsigned int difference;
         unsigned int r;
         unsigned int i;
-        // initialize BFS queue with a CircuitMatrix* for each resistor in the set -- ignore repeated resistor values
+        // initialize BFS queue with a Circuit* for each resistor in the set -- ignore repeated resistor values
         for (i = 0; i < resistors.size(); i++) {
             r = resistors.at(i);
-            current = new CircuitMatrix();
+            current = new Circuit();
             current->layResistor(r, 0, 1);
             difference = abs(current->getTotalResistance() - targetResistance);
             if (difference <= targetDifference) {
@@ -104,7 +104,7 @@ CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxRe
                 for (i = 0; i < size; i++) {
                     for (j = i; j < size+1; j++) {
                         // have to check this condition first b/c we need to know when to re-remove the resistor again
-                        CircuitMatrix * currentCopy = current->copy();
+                        Circuit * currentCopy = current->copy();
                         if (i!=j && currentCopy -> layResistor(r,i,j)) {
                             if (DEBUG) cout << "Trying to set " << r << " between nodes " << i << " and " << j << endl;
                             if (resistorsSeen.size() < maxResistors && circuitHashSet.find(currentCopy->hashCode())==circuitHashSet.end()) {
@@ -150,5 +150,5 @@ CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxRe
 
 int main(int argc, char** argv) {
     vector<unsigned int> resistorSet = {100, 100, 100, 500};
-    cMx = findEquivalentResistanceCircuit(15, 3, 0.05, resistorSet);
+    circuit = findEquivalentResistanceCircuit(15, 3, 0.05, resistorSet);
 }

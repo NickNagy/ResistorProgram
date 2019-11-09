@@ -57,14 +57,14 @@ void drawResistor(int x, int y, int length, int value) {
 void drawCircuit() {
     unsigned int initHeight = WINDOW_HEIGHT / 2;
     unsigned int nextHeight = 30; // placeholder
-    unsigned int circuitSize = cMx -> getSize();
+    unsigned int circuitSize = circuit -> getSize();
     unsigned int resistorLength = WINDOW_LENGTH / circuitSize;
     cout << "resistor length: " << resistorLength << endl;
     drawGrid(resistorLength, circuitSize);
     for (int i = 0; i < circuitSize - 1; i++) {
         for (int j = i+1; j < circuitSize; j++) {
             char y = 0;
-            for (int r : cMx->getResistors(i,j)) {
+            for (int r : circuit->getResistors(i,j)) {
                 drawResistor(i*resistorLength,y,resistorLength,r);
                 y+=nextHeight;
             }
