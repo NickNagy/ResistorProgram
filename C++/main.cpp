@@ -13,6 +13,7 @@ using namespace std;
 typedef struct CMTracker{
     CircuitMatrix * cMx;
     vector<unsigned int> seenResistors;
+
 } CMTracker;
 
 void explain(CircuitMatrix * m){
@@ -71,14 +72,17 @@ CircuitMatrix * findEquivalentResistanceCircuit (int targetResistance, int maxRe
         }
         // continue BFS by adding new resistors to each pulled CM* from the queue, and re-queueing, until a circuit with ~target equiv
         // resistance is found
+        vector <unsigned int> resistorsLeft;
         while (!circuitQueue.empty()) {
             current = circuitQueue.front();
             cout << "**********\nCurrent Matrix: \n" << current->toString() << endl;
             circuitQueue.pop();
-            for (int i = 0; i < resistors.size(); i++) { // <- this is gonna fail!!!
+            // need to skip over resistors that are already in the current circuit!
+            resistorsLeft = getRemainingVector(resistors, resistors);//current->getResistors());
+            for (unsigned int i = 0; i < resistorsLeft.size(); i++) { // <- this is gonna fail!!!
             /* also, there is probably a way to check in the first loop that something has
             already been tried before inserting into matrix, like if (r has equaled resistors->get(i)) */
-                int r = resistors.at(i);
+                int r = resistorsLeft.at(i);
                 cout << "Looking at resistor: " << r << endl;
                 int size = current->getSize();
                 // TODO: we'd want to check series connections before parallel

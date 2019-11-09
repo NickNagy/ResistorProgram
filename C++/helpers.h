@@ -7,6 +7,7 @@ This file defines some functions that are used by different files and classes in
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <iterator>
@@ -22,6 +23,7 @@ using namespace std;
 string intSetToString(multiset<int> s);
 string intVectorToString(vector<unsigned int> v);
 string floatToString(float f, int precision);
+vector<unsigned int> getRemainingVector(vector<unsigned int> original, vector<unsigned int> subtractor);
 int colorToNumber(string s);
 string * getColors(int resistance);
 int getResistance(string * colors);

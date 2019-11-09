@@ -31,6 +31,21 @@ string floatToString(float f, int precision) {
     return ss.str();
 }
 
+// returns a vector that removes the elements of subtractor, not including repeats and ignoring values in subtractor
+// that are not also in original
+// eg:
+//  original = {1, 2, 3, 4, 5, 5, 6}
+//  subtractor = {2, 5, 7}
+//  result = {1, 3, 4, 5, 6}
+vector<unsigned int> getRemainingVector(vector<unsigned int> original, vector<unsigned int> subtractor) {
+    vector<unsigned int> result = original;
+    for (unsigned int i: subtractor) {
+        vector<unsigned int>::iterator it = find(result.begin(), result.end(), i);
+        if (it != result.end()) result.erase(it);
+    }
+    return result;
+}
+
 // returns the appropriate digit based on the color defined by string s, to match the resistor color code guide
 int colorToNumber(string s) {
     if (!s.compare("Black"))  return 0;
