@@ -169,9 +169,12 @@ Circuit * Circuit::copy() {
         for (unsigned int j = i; j < size; j++) {
             if (i!=j) {
                 for (unsigned int r: getResistors(i,j)) {
-                    thisCopy[i][j]->resistors.push_back(r);
+                    thisCopy->layResistor(r, i, j);
                 }
-                thisCopy[i][j]->computeLocalResistance();
+                // TODO: make a function that we can insert multiple resistors simultaneously rather than having to computeLocalResistance every time a single resistor is inserted
+                //    thisCopy[i][j]->resistors.push_back(r);
+                //}
+                //thisCopy[i][j]->computeLocalResistance();
             }    
         }
     }

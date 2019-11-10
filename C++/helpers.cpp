@@ -63,7 +63,7 @@ int colorToNumber(string s) {
 }
 
 // returns a string vector of size 3 - each string defines one of the three resistor band colors corresponding to the given resistance
-string * getColors(int resistance) {
+string * getColors(unsigned int resistance) {
     string colorStrings[] = {"Black", "Brown", "Red", "Orange", "Yellow", "Green", "Blue", "Violet", "Grey", "White"};
     string * colors = new string[3];
     int multiplier = 1;
@@ -84,9 +84,12 @@ string * getColors(int resistance) {
 }
 
 // returns the resistance corresponding to the three band colors passed in colors
-int getResistance(string * colors) {
-    // assumes length(colors)==3
-    int resistance = colorToNumber(colors[0]) * 10;
-    resistance += colorToNumber(colors[1]);
-    return resistance * (int)pow(10, colorToNumber(colors[2]));
+unsigned int getResistance(string * colors) {
+    int first = colorToNumber(colors[0]);
+    int second = colorToNumber(colors[1]);
+    int third = colorToNumber(colors[2]);
+    if (first < 0 || second < 0 || third < 0) return 0;
+    int resistance = first * 10;
+    resistance += second;
+    return resistance * (int)pow(10, third);
 }

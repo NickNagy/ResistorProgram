@@ -25,7 +25,7 @@ string intVectorToString(vector<unsigned int> v);
 string floatToString(float f, int precision);
 vector<unsigned int> getRemainingVector(vector<unsigned int> original, vector<unsigned int> subtractor);
 int colorToNumber(string s);
-string * getColors(int resistance);
-int getResistance(string * colors);
+string * getColors(unsigned int resistance);
+unsigned int getResistance(string * colors);
 
 #endif

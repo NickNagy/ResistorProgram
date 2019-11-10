@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <queue>
 #include <set>
 #include <unordered_set>
@@ -12,8 +13,37 @@
 
 using namespace std;
 
+// TODO: check for bad lines in file
+vector<unsigned int> loadResistorSetFromFile(string filename) {
+    vector<unsigned int> resistors;
+    ifstream file(filename, ios::out);
+    if(!file.is_open()) {
+        cout << "Error accessing file.\n";
+    } else {
+        string resistor;
+        while(getline(file, resistor)) {
+            resistors.push_back((unsigned int)stoi(resistor));
+        }
+        file.close();
+    }
+    return resistors;
+}
+
+void saveResistorSetToFile(string filename, vector<unsigned int> resistors) {
+    ofstream file(filename, ios::in);
+    if(!file.is_open()) {
+        cout << "Error accessing file.\n";
+    } else {
+        for(unsigned int resistor: resistors) {
+            file << to_string(resistor) << endl;
+        }
+        file.close();
+        cout << "Resistors saved.\n";
+    }
+}
+
 void explain(Circuit * m){
-    cout << "Found a circuit with total resistance: " << m->getTotalResistance() << " ohms.\n";
+    cout << "A circuit with total resistance: " << m->getTotalResistance() << " ohms.\n";
     cout << "Explanation:\n";
     int size = m->getSize();
     for (int i = 0; i < size-1; i++) {
@@ -148,7 +178,117 @@ Circuit * findEquivalentResistanceCircuit (int targetResistance, int maxResistor
     return bestCandidate;
 }
 
+void userSelection() {
+    char response = 0;
+    unsigned int resistance = 0;
+    while (1) {
+        cout << "\na - add a resistor to your collection\nb - build a circuit from your resistor collection\nc - check a resistor's band colors\n"
+                "r - remove a resistor from your collection\ns - search for a circuit with a specific net resistance\nany other key - quit"
+                "\n\nWhat would you like to do? ";
+        cin >> response;
+        response = (response < 97) ? response+32 : response;
+        switch(response) {
+            case 'a': {
+                    cout << "Enter a resistance value to add (1 ohm to 1000000 ohms): ";
+                    cin >> resistance;
+                    if (resistance > 1000000) {
+                        cout << "Sorry, that is not in the accepted range.\n";
+                    } else {
+                        resistorCollection.push_back(resistance);
+                        cout << "Added!\n";
+                    }
+                }
+                break;
+            case 'b':
+                cout << "This feature is coming soon!\n";
+                break;
+            case 'c': {
+                    string * colors = new string[3];
+                    cout << "If you're submitting a resistance value to look up its band colors, type 'c' again. If you're entering three colors to look up the resistance, type any key. ";
+                    cin >> response;
+                    switch(response) {
+                        case 'c': {
+                                cout << "Enter a resistance value to check (1 ohm to 1000000 ohms): ";
+                                cin >> resistance;
+                                if (resistance > 1000000) {
+                                    cout << "Sorry, that is not in the accpeted range.\n";
+                                } else {
+                                    colors = getColors(resistance);
+                                    cout << colors[0] << ", " << colors[1] << ", " << colors[2] << endl;
+                                }
+                            }
+                            break;
+                        default: {
+                                cout << "Enter three colors from the following options: Black, Brown, Red, Orange, Yellow, Green, Blue, Violet, Grey, White\nFirst color: ";
+                                cin >> colors[0];
+                                cout << "Second color: ";
+                                cin >> colors[1];
+                                cout << "Third color: ";
+                                cin >> colors[2];
+                                resistance = getResistance(colors);
+                                if (!resistance) {
+                                    cout << "There was an error with your submissions.\n";
+                                } else {
+                                    cout << "Resistor {" << colors[0] << ", " << colors[1] << ", " << colors[2] << "} ~= " << resistance << " ohms.\n";
+                                }
+                            }
+                            break;
+                    }
+                    delete [] colors;
+                }
+                break;
+            case 'r': {
+                    cout << "Enter a resistance value to remove (1 ohm to 1000000 ohms): ";
+                    cin >> resistance;
+                    if (resistance > 1000000) {
+                        cout << "Sorry, that is not in the accepted range.\n";
+                    } else {
+                        vector<unsigned int>::iterator it = find(resistorCollection.begin(), resistorCollection.end(), resistance);
+                        if (it != resistorCollection.end()) resistorCollection.erase(it);
+                        cout << "Removed.\n";
+                    }
+                }
+                break;
+            case 's': {
+                    int maxResistors = resistorCollection.size();
+                    int marginOfError = 0.05;
+                    cout << "Enter a net resistance you are hoping to achieve from your resistor collection: ";
+                    cin >> resistance;
+                    cout << "Is there a limit to how many resistors you want to use? If so, enter 'y', otherwise enter any key. ";
+                    cin >> response;
+                    if (response == 'y') {
+                        cout << "What's the max number of resistors you want to use? ";
+                        cin >> maxResistors;
+                        maxResistors = (maxResistors > resistorCollection.size()) ? resistorCollection.size() : maxResistors;
+                    }
+                    cout << "What's your margin of error for the circuit found? Default is 0.05 (Example: for a target of 100 ohms we'd search for a circuit between 95 and 105 ohms. ";
+                    cin >> marginOfError;
+                    Circuit * found = findEquivalentResistanceCircuit(resistance, maxResistors, marginOfError, resistorCollection);
+                }
+                break;
+            default: 
+                cout << "Terminating...\n";
+                return;
+        }
+    }
+}
+
 int main(int argc, char** argv) {
-    vector<unsigned int> resistorSet = {100, 100, 100, 500};
-    circuit = findEquivalentResistanceCircuit(15, 3, 0.05, resistorSet);
+    char response;
+    string filename = "resistors.txt";
+    if (argc > 1) {
+        filename = argv[1];
+        resistorCollection = loadResistorSetFromFile(filename);
+    } else {
+        cout << "Load resistor collection from text file? [y/n] ";
+        cin >> response;
+        if (response == 'Y' || response == 'y') {
+            cout << "\nText file to load from: ";
+            cin >> filename;
+            resistorCollection = loadResistorSetFromFile(filename);
+        }
+    }
+    userSelection();
+    saveResistorSetToFile(filename, resistorCollection);
+    return 0;
 }
