@@ -31,11 +31,11 @@ TotalResistance(n0, n2) = LocalResistance(n0, n2) || NonLocalResistance(n0, n2) 
 #include <string>
 #include <vector>
 #include <set>
+#include <memory>
 #include "helpers.h"
 
 using namespace std;
 
-// TODO: giving both classes a getResistors function feels redundant
 class Circuit {
     private:
         typedef struct CircuitEdge {
@@ -46,7 +46,7 @@ class Circuit {
             void computeLocalResistance();
         } CircuitEdge;
         unsigned int size = 2;
-        vector<vector<CircuitEdge*>> matrix = vector<vector<CircuitEdge*>>(size, vector<CircuitEdge*>(size));
+        vector<vector<shared_ptr<CircuitEdge>>> matrix = vector<vector<shared_ptr<CircuitEdge>>>(size, vector<shared_ptr<CircuitEdge>>(size));
         void resize(unsigned int newSize);
         void refresh(unsigned int n1, unsigned int n2);
     public:
@@ -60,7 +60,7 @@ class Circuit {
         float getTotalResistance();
         int hashCode();
         char equals(Circuit * other); // TODO
-        Circuit * copy();
+        unique_ptr<Circuit> copy();
         string toString();
 };
 

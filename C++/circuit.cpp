@@ -45,18 +45,18 @@ void Circuit::CircuitEdge::computeLocalResistance() {
 // intuition behind matrix: edge(i,i) is meaningless, and other methods check for that;
 //      edge(i,j) = edge(j,i)
 Circuit::Circuit() {
-    CircuitEdge * E = new CircuitEdge();
-    CircuitEdge * nul = new CircuitEdge();
-    matrix[0][0] = nul;
+    shared_ptr<CircuitEdge> E = make_shared<CircuitEdge>();
+    shared_ptr<CircuitEdge> nullEdge = make_shared<CircuitEdge>();
+    matrix[0][0] = nullEdge;
     matrix[0][1] = E;
     matrix[1][0] = E;
-    matrix[1][1] = nul;
+    matrix[1][1] = nullEdge;
 }
 
 // destructor
 // frees matrix from memory
 Circuit::~Circuit() {
-    vector<vector<CircuitEdge*>>().swap(matrix);
+    vector<vector<shared_ptr<CircuitEdge>>>().swap(matrix);
 }
 
 // resizes matrix to (size+1)*(size+1), then updates size field
@@ -67,7 +67,7 @@ void Circuit::resize(unsigned int newSize) {
     }
     if (newSize > size) {
         for (unsigned int j = 0; j < newSize-1; j++) {
-            matrix[j][newSize-1] = new CircuitEdge();
+            matrix[j][newSize-1] = make_shared<CircuitEdge>();
             matrix[newSize-1][j] = matrix[j][newSize-1];
         }
         matrix[newSize-1][newSize-1] = matrix[0][0];  
@@ -121,15 +121,14 @@ char Circuit::removeResistor(unsigned int value, unsigned int n1, unsigned int n
         n2 = temp;
     }
     if (value== 0 || n2 > size) return 0;
-    CircuitEdge * e = matrix[n1][n2];
     // check to make sure that removing the resistor won't cause a hole in the circuit
-    int holeCheck = e->resistors.size() - 1;
+    int holeCheck = matrix[n1][n2]->resistors.size() - 1;
     if (n2 < size - 1 && holeCheck<1) return 0;
-    vector<unsigned int>::iterator firstInstance = find(e->resistors.begin(), e->resistors.end(), value);
-    if (firstInstance!=e->resistors.end()) {
-        e->resistors.erase(firstInstance);
-        e->computeLocalResistance();
-        if (size > 2 && n2 == size-1 && !e->resistors.size()) resize(size-1);
+    vector<unsigned int>::iterator firstInstance = find(matrix[n1][n2]->resistors.begin(), matrix[n1][n2]->resistors.end(), value);
+    if (firstInstance!=matrix[n1][n2]->resistors.end()) {
+        matrix[n1][n2]->resistors.erase(firstInstance);
+        matrix[n1][n2]->computeLocalResistance();
+        if (size > 2 && n2 == size-1 && !matrix[n1][n2]->resistors.size()) resize(size-1);
         refresh(n1,n2);
         return 1;
     }
@@ -162,8 +161,9 @@ char Circuit::equals(Circuit *other) {
 }
 
 // returns a copy of this Circuit object
-Circuit * Circuit::copy() {
-    Circuit * thisCopy = new Circuit();
+// TODO: make a function that we can insert multiple resistors simultaneously rather than having to computeLocalResistance every time a single resistor is inserted
+unique_ptr<Circuit> Circuit::copy() {
+    unique_ptr<Circuit> thisCopy(new Circuit());
     thisCopy->resize(size);
     for (unsigned int i = 0; i < size-1; i++) {
         for (unsigned int j = i; j < size; j++) {
@@ -171,17 +171,12 @@ Circuit * Circuit::copy() {
                 for (unsigned int r: getResistors(i,j)) {
                     thisCopy->layResistor(r, i, j);
                 }
-                // TODO: make a function that we can insert multiple resistors simultaneously rather than having to computeLocalResistance every time a single resistor is inserted
-                //    thisCopy[i][j]->resistors.push_back(r);
-                //}
-                //thisCopy[i][j]->computeLocalResistance();
             }    
         }
     }
     return thisCopy;
 }
 
-// TODO: optimize using ostringstream
 // returns a string representation of the circuit as a 2d-matrix, that visualizes each edge's total equivalent
 // resistance
 string Circuit::toString() {
