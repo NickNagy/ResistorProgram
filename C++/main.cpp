@@ -44,6 +44,7 @@ void saveResistorSetToFile(string filename, vector<unsigned int> resistors) {
 
 void explain(Circuit * m){
     cout << "A circuit with total resistance: " << m->getTotalResistance() << " ohms.\n";
+    if (DEBUG) cout << m->toString();
     cout << "Explanation:\n";
     int size = m->getSize();
     for (int i = 0; i < size-1; i++) {
@@ -53,8 +54,8 @@ void explain(Circuit * m){
                 vector<unsigned int> resistors = m->getResistors(i,j);
                 cout << "From node " << i << " to node " << j << ": ";
                 if (resistors.size() > 1) {
-                    cout << intVectorToString(resistors) << " ohm resistors in parallel.\n";
-                } else {
+                    cout << collectionToString(resistors) << " ohm resistors in parallel.\n";
+                } else if (resistors.size()==1) {
                     cout << resistors.at(0) << " ohm resistor.\n"; 
                 }
             }
@@ -62,120 +63,187 @@ void explain(Circuit * m){
     } 
 }
 
-Circuit * findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
+// TODO: change some of the data types so floats don't get rounded to ints during operations
+unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
     // I do not like this struct, and I do NOT think it should exist anywhere outside of this function, but it is better than many alternatives
-    typedef struct CMTracker{
-        Circuit * cMx;
-        vector<unsigned int> seenResistors;
-    } CMTracker;
+    typedef struct CircuitTracker{
+        vector<unsigned int> resistorsSeen;
+        unique_ptr<Circuit> circuit = make_unique<Circuit>();
+    } CircuitTracker;
     cout << "Searching for a circuit with equivalent resistance in the range of " << targetResistance*(1-MoE) << " and " << targetResistance*(1+MoE) << " using the following resistors:\n";
-    cout << "{" << intVectorToString(resistors) << "}\n";
-    Circuit * bestCandidate = new Circuit();
+    cout << collectionToString(resistors) << endl;
+    unique_ptr<Circuit> bestCandidate = make_unique<Circuit>();
     float targetDifference = MoE*targetResistance;
+    unique_ptr<Circuit> current;
     unsigned int sum = 0;
-    // should return a NULL Circuit object if sum(resistors) < target 
     for (int r: resistors) {
         sum += r;
     }
     if (sum >= targetResistance*(1-MoE)) {
-        unordered_set<int> circuitHashSet;
-        Circuit * current;
-        CMTracker * tracker;
-        queue<CMTracker*> circuitQueue; 
+        unordered_set<float> circuitHashSet;
+        //unique_ptr<Circuit> current;
+        queue<CircuitTracker> circuitQueue; 
         unsigned int minDifference = 0xFFFF;
-        unsigned int difference;
-        unsigned int r;
-        unsigned int i;
+        unsigned int difference, r, i;
         // initialize BFS queue with a Circuit* for each resistor in the set -- ignore repeated resistor values
         for (i = 0; i < resistors.size(); i++) {
+            current = make_unique<Circuit>();
             r = resistors.at(i);
-            current = new Circuit();
-            current->layResistor(r, 0, 1);
-            difference = abs(current->getTotalResistance() - targetResistance);
+            current->layResistor(r,0,1);
+            difference = r>targetResistance ? r-targetResistance:targetResistance-r;
             if (difference <= targetDifference) {
-                explain(current);
-                return current;
+                explain(current.get());
+                return move(current);
             }
             if (difference < minDifference) {
                 minDifference = difference;
                 bestCandidate = current->copy();
             }
-            int currentHashCode = current->hashCode();
-            if (circuitHashSet.find(currentHashCode) == circuitHashSet.end()){ // segfault happens in this check
-                //cout << "Pushing to queue:\n" << current->toString() << " with address=" << current << endl;
-                tracker = new CMTracker;
-                vector<unsigned int> v{r};
-                *tracker = {current, v};
-                circuitQueue.push(tracker);
-                circuitHashSet.insert(currentHashCode);
+            //int currentHashCode = current->hashCode();
+            if (circuitHashSet.find(r) == circuitHashSet.end()){
+                vector<unsigned int> resistorsSeen(1, r);
+                if (DEBUG) cout << "pushing " << current->toString() << "to queue.\n";
+                circuitQueue.push(CircuitTracker{resistorsSeen, move(current)});
+                circuitHashSet.insert(r);
             }
+
         }
-        // continue BFS by adding new resistors to each pulled CM* from the queue, and re-queueing, until a circuit with ~target equiv
-        // resistance is found
+        // continue BFS by adding new resistors to each pulled CM* from the queue, and re-queueing, until a circuit with ~target equiv resistance is found
         unsigned int j;
-        vector <unsigned int> resistorsLeft;
         vector <unsigned int> resistorsSeen;
+        vector <unsigned int> resistorsLeft;
+        if (DEBUG) cout << "***BEGIN***\n";
         while (!circuitQueue.empty()) {
-            tracker = circuitQueue.front();
-            current = tracker->cMx;
-            if (DEBUG) cout << "**********\nQueue Size: " << circuitQueue.size() << "\nCurrent Matrix: \n" << current->toString() << endl;
+            resistorsSeen = circuitQueue.front().resistorsSeen;
+            current = move(circuitQueue.front().circuit);
+            if (DEBUG) cout << current->toString() << "popped from front of queue.\n";
             circuitQueue.pop();
-            // need to skip over resistors that are already in the current circuit!
-            resistorsSeen = tracker->seenResistors;
-            resistorsLeft = getRemainingVector(resistors, resistorsSeen);//current->getResistors());
-            if (DEBUG) {
-                cout << "Resistors seen: " << intVectorToString(resistorsSeen) << endl;
-                cout << "Resistors left: " << intVectorToString(resistorsLeft) << endl;
-            }
+            resistorsLeft = getRemainingVector(resistors, resistorsSeen);
+            if (DEBUG) cout << "Resistors left: " << collectionToString(resistorsLeft) << endl;
             for (unsigned int r : resistorsLeft) {
-                if (DEBUG) cout << "Looking at resistor: " << r << endl;
+                if (DEBUG) cout << "looking at resistor: " << r << endl;
                 int size = current->getSize();
-                // TODO: we'd want to check series connections before parallel
-                for (i = 0; i < size; i++) {
-                    for (j = i; j < size+1; j++) {
-                        // have to check this condition first b/c we need to know when to re-remove the resistor again
-                        Circuit * currentCopy = current->copy();
-                        if (i!=j && currentCopy -> layResistor(r,i,j)) {
-                            if (DEBUG) cout << "Trying to set " << r << " between nodes " << i << " and " << j << endl;
-                            if (resistorsSeen.size() < maxResistors && circuitHashSet.find(currentCopy->hashCode())==circuitHashSet.end()) {
-                                if (DEBUG) cout << "success!\nNow current = \n" << currentCopy->toString();
-                                difference = abs(currentCopy->getTotalResistance() - targetResistance);
-                                if (difference <= targetDifference) {
-                                    explain(currentCopy);
-                                    return currentCopy;
-                                }
-                                if (difference < minDifference) {
-                                    minDifference = difference;
-                                    bestCandidate = currentCopy->copy();
-                                }
-                                if (DEBUG) {
-                                    cout << "Best current: " << bestCandidate->toString();
-                                    cout << "Pushing to queue:\n" << currentCopy->toString();
-                                }
-                                CMTracker * trackerCopy = new CMTracker;
-                                vector<unsigned int> seenResistorsCopy = resistorsSeen;
-                                seenResistorsCopy.push_back(r);
-                                *trackerCopy = {currentCopy, seenResistorsCopy};
-                                circuitQueue.push(trackerCopy);
-                                circuitHashSet.insert(currentCopy->hashCode());
+                // loops are reversed to check adding resistor to the end before trying any parallel connections
+                for (i = size; i >= 0; i--) {
+                    for (j = size+1; j > i; j--) {
+                        unique_ptr<Circuit> currentCopy = current->copy();
+                        if (i!=j && currentCopy -> layResistor(r,i,j) && resistorsSeen.size() < maxResistors && circuitHashSet.find(currentCopy->getTotalResistance())==circuitHashSet.end()) {
+                            float totalResistance = currentCopy->getTotalResistance();
+                            difference = abs(totalResistance - targetResistance);
+                            if (difference <= targetDifference) {
+                                explain(currentCopy.get());
+                                return currentCopy;
                             }
-                            /* if (DEBUG) {
-                                cout << "Enter q to quit\n";
-                                string response;
-                                cin >> response;
-                                if (!response.compare("q")) return bestCandidate;
-                            }*/
+                            if (difference < minDifference) {
+                                minDifference = difference;
+                                bestCandidate = currentCopy->copy();
+                            }
+                            resistorsSeen.push_back(r);
+                            circuitHashSet.insert(totalResistance);
+                            if (DEBUG) cout << "Pushing " << currentCopy->toString() << "to queue.\n";
+                            circuitQueue.push(CircuitTracker{resistorsSeen, move(currentCopy)});
+                            resistorsSeen.pop_back();
                         }
                     }
+                }
+                cout << "queue size=" << circuitQueue.size() << "; best candidate = " << bestCandidate->getTotalResistance() << endl;
+                if (DEBUG) {
+                    char next;
+                    cout << "Enter 'n' to keep going.";
+                    cin >> next;
+                    if (next!='n') break;
                 }
             }
         }
         cout << "Did not find a circuit with an equivalent resistance in the desired range.\n";
-        explain(bestCandidate);
+        explain(bestCandidate.get());
     } else {
         cout << "No resistors from the given set that can achieve this resistance.\n";
     }
     return bestCandidate;
+}
+
+void addResistorsToSet() {
+    unsigned int resistance;
+    string greeting = "Enter a resistance value to add (1 ohm to 1000000 ohms), or 0 to return to main menu: ";
+    cout << greeting;
+    cin >> resistance;
+    while (resistance > 0) {
+        if (resistance > 1000000) {
+            cout << "Sorry, that is not a valid resistance.\n";
+        } else {
+            resistorCollection.push_back(resistance);
+            cout << "Added!\nYour set: " << collectionToString(resistorCollection) << endl; 
+        }
+        cout << greeting;
+        cin >> resistance;
+    } 
+}
+
+void checkResistances() {
+    vector <string> colors(3);
+    char response;
+    unsigned int resistance;
+    string greeting = "If you're submitting a resistance value to look up its band colors, type 'r' again.\n" 
+                    "If you're entering three colors to look up the resistance, type 'c'.\n"
+                    "Type anything else to quit: ";
+    cout << greeting;
+    cin >> response;
+    while (1) {
+        switch(response) {
+            case 'r': {
+                    cout << "Enter a resistance value to check (1 ohm to 1000000 ohms): ";
+                    cin >> resistance;
+                    if (resistance > 1000000) {
+                        cout << "Sorry, that is not in the accpeted range.\n";
+                    } else {
+                        colors = getColors(resistance);
+                        cout << colors[0] << ", " << colors[1] << ", " << colors[2] << endl;
+                    }
+                }
+                break;
+            case 'c': {
+                    cout << "Enter three colors from the following options: Black, Brown, Red, Orange, Yellow, Green, Blue, Violet, Grey, White\nFirst color: ";
+                    cin >> colors[0];
+                    cout << "Second color: ";
+                    cin >> colors[1];
+                    cout << "Third color: ";
+                    cin >> colors[2];
+                    resistance = getResistance(colors);
+                    if (!resistance) {
+                        cout << "There was an error with your submissions.\n";
+                    } else {
+                        cout << "Resistor {" << colors[0] << ", " << colors[1] << ", " << colors[2] << "} ~= " << resistance << " ohms.\n";
+                    }
+                }
+                break;
+            default: return;
+        }
+        cout << greeting;
+        cin >> response;
+    }
+}
+
+void removeResistorsFromSet() {
+    unsigned int resistance;
+    string greeting = "Enter a resistance value to remove (1 ohm to 1000000 ohms), or 0 to return to the main menu: ";
+    cout << greeting;
+    cin >> resistance;
+    while (resistance > 0) {
+        if (resistance > 1000000) {
+            cout << "Sorry, that is not a valid resistance.\n";
+        } else {
+            vector<unsigned int>::iterator it = find(resistorCollection.begin(), resistorCollection.end(), resistance);
+            if (it != resistorCollection.end()) {
+                resistorCollection.erase(it);
+                cout << "Removed.\nYour set: " << collectionToString(resistorCollection) << endl;
+            } else {
+                cout << "We don't see that resistor in your collection.\n";
+            }           
+        }
+        cout << greeting;
+        cin >> resistance;       
+    }
 }
 
 void userSelection() {
@@ -186,68 +254,16 @@ void userSelection() {
                 "r - remove a resistor from your collection\ns - search for a circuit with a specific net resistance\nany other key - quit"
                 "\n\nWhat would you like to do? ";
         cin >> response;
-        response = (response < 97) ? response+32 : response;
+        response = (response < 97) ? response+32 : response; // add to rest of functions?
         switch(response) {
-            case 'a': {
-                    cout << "Enter a resistance value to add (1 ohm to 1000000 ohms): ";
-                    cin >> resistance;
-                    if (resistance > 1000000) {
-                        cout << "Sorry, that is not in the accepted range.\n";
-                    } else {
-                        resistorCollection.push_back(resistance);
-                        cout << "Added!\n";
-                    }
-                }
+            case 'a': addResistorsToSet();
                 break;
             case 'b':
                 cout << "This feature is coming soon!\n";
                 break;
-            case 'c': {
-                    string * colors = new string[3];
-                    cout << "If you're submitting a resistance value to look up its band colors, type 'c' again. If you're entering three colors to look up the resistance, type any key. ";
-                    cin >> response;
-                    switch(response) {
-                        case 'c': {
-                                cout << "Enter a resistance value to check (1 ohm to 1000000 ohms): ";
-                                cin >> resistance;
-                                if (resistance > 1000000) {
-                                    cout << "Sorry, that is not in the accpeted range.\n";
-                                } else {
-                                    colors = getColors(resistance);
-                                    cout << colors[0] << ", " << colors[1] << ", " << colors[2] << endl;
-                                }
-                            }
-                            break;
-                        default: {
-                                cout << "Enter three colors from the following options: Black, Brown, Red, Orange, Yellow, Green, Blue, Violet, Grey, White\nFirst color: ";
-                                cin >> colors[0];
-                                cout << "Second color: ";
-                                cin >> colors[1];
-                                cout << "Third color: ";
-                                cin >> colors[2];
-                                resistance = getResistance(colors);
-                                if (!resistance) {
-                                    cout << "There was an error with your submissions.\n";
-                                } else {
-                                    cout << "Resistor {" << colors[0] << ", " << colors[1] << ", " << colors[2] << "} ~= " << resistance << " ohms.\n";
-                                }
-                            }
-                            break;
-                    }
-                    delete [] colors;
-                }
+            case 'c': checkResistances();
                 break;
-            case 'r': {
-                    cout << "Enter a resistance value to remove (1 ohm to 1000000 ohms): ";
-                    cin >> resistance;
-                    if (resistance > 1000000) {
-                        cout << "Sorry, that is not in the accepted range.\n";
-                    } else {
-                        vector<unsigned int>::iterator it = find(resistorCollection.begin(), resistorCollection.end(), resistance);
-                        if (it != resistorCollection.end()) resistorCollection.erase(it);
-                        cout << "Removed.\n";
-                    }
-                }
+            case 'r': removeResistorsFromSet();
                 break;
             case 's': {
                     int maxResistors = resistorCollection.size();
@@ -261,9 +277,10 @@ void userSelection() {
                         cin >> maxResistors;
                         maxResistors = (maxResistors > resistorCollection.size()) ? resistorCollection.size() : maxResistors;
                     }
-                    cout << "What's your margin of error for the circuit found? Default is 0.05 (Example: for a target of 100 ohms we'd search for a circuit between 95 and 105 ohms. ";
-                    cin >> marginOfError;
-                    Circuit * found = findEquivalentResistanceCircuit(resistance, maxResistors, marginOfError, resistorCollection);
+                    // these two lines cause the program to terminate "cin reads '.' as the next response"
+                    //cout << "What's your margin of error for the circuit found? Default is 0.05 (Example: for a target of 100 ohms we'd search for a circuit between 95 and 105 ohms. ";
+                    //cin >> marginOfError;
+                    unique_ptr<Circuit> found = findEquivalentResistanceCircuit(resistance, maxResistors, marginOfError, resistorCollection);
                 }
                 break;
             default: 
@@ -288,6 +305,7 @@ int main(int argc, char** argv) {
             resistorCollection = loadResistorSetFromFile(filename);
         }
     }
+    cout << "Your set: " << collectionToString(resistorCollection);
     userSelection();
     saveResistorSetToFile(filename, resistorCollection);
     return 0;
