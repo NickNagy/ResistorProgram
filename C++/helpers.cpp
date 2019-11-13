@@ -17,10 +17,12 @@ using namespace std;
 // returns a string representation of vector v
 string intVectorToString(vector<unsigned int> v) {
     ostringstream oss;
+    oss << "{";
     if (!v.empty()) {
         copy(v.begin(), v.end()-1, ostream_iterator<unsigned int>(oss, ","));
         oss << v.back();
     }
+    oss << "}";
     return oss.str();   
 }
 
@@ -63,9 +65,9 @@ int colorToNumber(string s) {
 }
 
 // returns a string vector of size 3 - each string defines one of the three resistor band colors corresponding to the given resistance
-string * getColors(unsigned int resistance) {
+vector<string> getColors(unsigned int resistance) {
     string colorStrings[] = {"Black", "Brown", "Red", "Orange", "Yellow", "Green", "Blue", "Violet", "Grey", "White"};
-    string * colors = new string[3];
+    vector<string> colors(3);
     int multiplier = 1;
     while (resistance / multiplier >= 100) {
         multiplier *= 10;
@@ -84,7 +86,7 @@ string * getColors(unsigned int resistance) {
 }
 
 // returns the resistance corresponding to the three band colors passed in colors
-unsigned int getResistance(string * colors) {
+unsigned int getResistance(vector<string> colors) {
     int first = colorToNumber(colors[0]);
     int second = colorToNumber(colors[1]);
     int third = colorToNumber(colors[2]);

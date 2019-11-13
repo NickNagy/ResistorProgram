@@ -37,7 +37,7 @@ void drawGrid(unsigned int resistorLength, unsigned int numSpaces) {
 
 void drawResistor(int x, int y, int length, int value) {
     // drawn line (about 1/3 length)
-    string * resistorColors = getColors(value);
+    vector<string> resistorColors = getColors(value);
     int bodyStart = x + (length/3);
     int bodyEnd = x + (2*length/3);
     int bodyLength = bodyEnd - bodyStart;
