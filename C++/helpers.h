@@ -20,8 +20,17 @@ This file defines some functions that are used by different files and classes in
 
 using namespace std;
 
-string intSetToString(multiset<int> s);
-string intVectorToString(vector<unsigned int> v);
+template<typename Collection>
+string collectionToString(const Collection& collection) {
+    ostringstream oss;
+    oss << "{";
+    if (!collection.empty()){
+        copy(collection.begin(), collection.end()-1, ostream_iterator<typename Collection::value_type>(oss, ","));
+        oss << collection.back();
+    }
+    oss << "}";
+    return oss.str();
+}
 string floatToString(float f, int precision);
 vector<unsigned int> getRemainingVector(vector<unsigned int> original, vector<unsigned int> subtractor);
 int colorToNumber(string s);

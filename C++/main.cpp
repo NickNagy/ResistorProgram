@@ -54,7 +54,7 @@ void explain(Circuit * m){
                 vector<unsigned int> resistors = m->getResistors(i,j);
                 cout << "From node " << i << " to node " << j << ": ";
                 if (resistors.size() > 1) {
-                    cout << collectionToString(resistors) << " ohm resistors in parallel.\n";
+                    cout << collectionToString<vector<unsigned int>>(resistors) << " ohm resistors in parallel.\n";
                 } else if (resistors.size()==1) {
                     cout << resistors.at(0) << " ohm resistor.\n"; 
                 }
@@ -119,7 +119,7 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
             if (DEBUG) cout << current->toString() << "popped from front of queue.\n";
             circuitQueue.pop();
             resistorsLeft = getRemainingVector(resistors, resistorsSeen);
-            if (DEBUG) cout << "Resistors left: " << collectionToString(resistorsLeft) << endl;
+            if (DEBUG) cout << "Resistors left: " << collectionToString<vector<unsigned int>>(resistorsLeft) << endl;
             for (unsigned int r : resistorsLeft) {
                 if (DEBUG) cout << "looking at resistor: " << r << endl;
                 int size = current->getSize();
@@ -173,7 +173,7 @@ void addResistorsToSet() {
             cout << "Sorry, that is not a valid resistance.\n";
         } else {
             resistorCollection.push_back(resistance);
-            cout << "Added!\nYour set: " << collectionToString(resistorCollection) << endl; 
+            cout << "Added!\nYour set: " << collectionToString<vector<unsigned int>>(resistorCollection) << endl; 
         }
         cout << greeting;
         cin >> resistance;
@@ -236,7 +236,7 @@ void removeResistorsFromSet() {
             vector<unsigned int>::iterator it = find(resistorCollection.begin(), resistorCollection.end(), resistance);
             if (it != resistorCollection.end()) {
                 resistorCollection.erase(it);
-                cout << "Removed.\nYour set: " << collectionToString(resistorCollection) << endl;
+                cout << "Removed.\nYour set: " << collectionToString<vector<unsigned int>>(resistorCollection) << endl;
             } else {
                 cout << "We don't see that resistor in your collection.\n";
             }           
@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
             resistorCollection = loadResistorSetFromFile(filename);
         }
     }
-    cout << "Your set: " << collectionToString(resistorCollection);
+    cout << "Your set: " << collectionToString<vector<unsigned int>>(resistorCollection);
     userSelection();
     saveResistorSetToFile(filename, resistorCollection);
     return 0;

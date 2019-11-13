@@ -8,24 +8,6 @@ This file defines some functions that are used by different files and classes in
 
 using namespace std;
 
-/* string intSetToString(multiset<int> s) {
-    ostringstream stream;
-    copy(s.begin(), s.end(), ostream_iterator<string>(stream, ","));
-    return stream.str();
-}*/
-
-// returns a string representation of vector v
-string intVectorToString(vector<unsigned int> v) {
-    ostringstream oss;
-    oss << "{";
-    if (!v.empty()) {
-        copy(v.begin(), v.end()-1, ostream_iterator<unsigned int>(oss, ","));
-        oss << v.back();
-    }
-    oss << "}";
-    return oss.str();   
-}
-
 // returns f as a string with (precision) number of digits after the decimal
 string floatToString(float f, int precision) {
     stringstream ss;
