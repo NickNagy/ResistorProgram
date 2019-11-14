@@ -9,7 +9,7 @@
 #include "circuit.h"
 #include "circuitgraphics.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 using namespace std;
 
@@ -64,6 +64,7 @@ void explain(Circuit * m){
 }
 
 // TODO: change some of the data types so floats don't get rounded to ints during operations
+// TODO: algorithm can be improved by checking bestCandidate before front of queue! (which will also involve having a BestTracker rather than BestCiruit)
 unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
     // I do not like this struct, and I do NOT think it should exist anywhere outside of this function, but it is better than many alternatives
     typedef struct CircuitTracker{
@@ -76,40 +77,35 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
     float targetDifference = MoE*targetResistance;
     unique_ptr<Circuit> current;
     unsigned int sum = 0;
-    for (int r: resistors) {
+    for (unsigned int r: resistors) {
         sum += r;
     }
     if (sum >= targetResistance*(1-MoE)) {
         unordered_set<float> circuitHashSet;
-        //unique_ptr<Circuit> current;
         queue<CircuitTracker> circuitQueue; 
         unsigned int minDifference = 0xFFFF;
-        unsigned int difference, r, i;
+        unsigned int difference, r;
         // initialize BFS queue with a Circuit* for each resistor in the set -- ignore repeated resistor values
-        for (i = 0; i < resistors.size(); i++) {
-            current = make_unique<Circuit>();
-            r = resistors.at(i);
-            current->layResistor(r,0,1);
-            difference = r>targetResistance ? r-targetResistance:targetResistance-r;
-            if (difference <= targetDifference) {
-                explain(current.get());
-                return move(current);
-            }
-            if (difference < minDifference) {
-                minDifference = difference;
-                bestCandidate = current->copy();
-            }
-            //int currentHashCode = current->hashCode();
-            if (circuitHashSet.find(r) == circuitHashSet.end()){
+        for (unsigned int r: resistors) {//i = 0; i < resistors.size(); i++) {
+            if (circuitHashSet.find(r)==circuitHashSet.end()) {
+                current = make_unique<Circuit>();
+                current->layResistor(r,0,1);
+                difference = r>targetResistance ? r-targetResistance:targetResistance-r;
+                if (difference <= targetDifference) {
+                    explain(current.get());
+                    return move(current);
+                }
+                if (difference < minDifference) {
+                    minDifference = difference;
+                    bestCandidate = current->copy();
+                }
                 vector<unsigned int> resistorsSeen(1, r);
                 if (DEBUG) cout << "pushing " << current->toString() << "to queue.\n";
                 circuitQueue.push(CircuitTracker{resistorsSeen, move(current)});
                 circuitHashSet.insert(r);
             }
-
         }
         // continue BFS by adding new resistors to each pulled CM* from the queue, and re-queueing, until a circuit with ~target equiv resistance is found
-        unsigned int j;
         vector <unsigned int> resistorsSeen;
         vector <unsigned int> resistorsLeft;
         if (DEBUG) cout << "***BEGIN***\n";
@@ -124,8 +120,9 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
                 if (DEBUG) cout << "looking at resistor: " << r << endl;
                 int size = current->getSize();
                 // loops are reversed to check adding resistor to the end before trying any parallel connections
-                for (i = size; i >= 0; i--) {
-                    for (j = size+1; j > i; j--) {
+                for (int i = size-1; i >= 0; i--) {
+                    for (int j = size; j > i; j--) {
+                        if (DEBUG) cout << "i=" << i << " j=" << j << endl;
                         unique_ptr<Circuit> currentCopy = current->copy();
                         if (i!=j && currentCopy -> layResistor(r,i,j) && resistorsSeen.size() < maxResistors && circuitHashSet.find(currentCopy->getTotalResistance())==circuitHashSet.end()) {
                             float totalResistance = currentCopy->getTotalResistance();
@@ -138,11 +135,12 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
                                 minDifference = difference;
                                 bestCandidate = currentCopy->copy();
                             }
-                            resistorsSeen.push_back(r);
+                            vector<unsigned int> resistorsSeenCopy = resistorsSeen;
+                            resistorsSeenCopy.push_back(r);
                             circuitHashSet.insert(totalResistance);
                             if (DEBUG) cout << "Pushing " << currentCopy->toString() << "to queue.\n";
-                            circuitQueue.push(CircuitTracker{resistorsSeen, move(currentCopy)});
-                            resistorsSeen.pop_back();
+                            circuitQueue.push(CircuitTracker{resistorsSeenCopy, move(currentCopy)});
+                            //resistorsSeen.pop_back();
                         }
                     }
                 }
@@ -254,6 +252,7 @@ void userSelection() {
                 "r - remove a resistor from your collection\ns - search for a circuit with a specific net resistance\nany other key - quit"
                 "\n\nWhat would you like to do? ";
         cin >> response;
+        if (DEBUG) cout << "Your response was: " << response;
         response = (response < 97) ? response+32 : response; // add to rest of functions?
         switch(response) {
             case 'a': addResistorsToSet();
@@ -267,7 +266,7 @@ void userSelection() {
                 break;
             case 's': {
                     int maxResistors = resistorCollection.size();
-                    int marginOfError = 0.05;
+                    float marginOfError = 0.05;
                     cout << "Enter a net resistance you are hoping to achieve from your resistor collection: ";
                     cin >> resistance;
                     cout << "Is there a limit to how many resistors you want to use? If so, enter 'y', otherwise enter any key. ";
@@ -277,9 +276,9 @@ void userSelection() {
                         cin >> maxResistors;
                         maxResistors = (maxResistors > resistorCollection.size()) ? resistorCollection.size() : maxResistors;
                     }
-                    // these two lines cause the program to terminate "cin reads '.' as the next response"
-                    //cout << "What's your margin of error for the circuit found? Default is 0.05 (Example: for a target of 100 ohms we'd search for a circuit between 95 and 105 ohms. ";
-                    //cin >> marginOfError;
+                    cout << "What's your margin of error for the circuit found? Default is 0.05 (Example: for a target of 100 ohms we'd search for a circuit between 95 and 105 ohms. ";
+                    cin >> marginOfError;
+                    //vector<unsigned int> resistorVector(resistorCollection.begin(), resistorCollection.end());
                     unique_ptr<Circuit> found = findEquivalentResistanceCircuit(resistance, maxResistors, marginOfError, resistorCollection);
                 }
                 break;

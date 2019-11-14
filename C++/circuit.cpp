@@ -46,7 +46,7 @@ void Circuit::CircuitEdge::computeLocalResistance() {
 //      edge(i,j) = edge(j,i)
 Circuit::Circuit() {
     shared_ptr<CircuitEdge> E = make_shared<CircuitEdge>();
-    shared_ptr<CircuitEdge> nullEdge = make_shared<CircuitEdge>();
+    shared_ptr<CircuitEdge> nullEdge = make_shared<CircuitEdge>(); // just called so b/c it's not to be used at all
     matrix[0][0] = nullEdge;
     matrix[0][1] = E;
     matrix[1][0] = E;

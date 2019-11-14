@@ -4,7 +4,9 @@
 #include <vector>
 #include "circuit.h"
 
-extern Circuit * circuit;
+using namespace std;
+
+extern unique_ptr<Circuit> circuit;
 extern vector<unsigned int> resistorCollection;
 extern char graphicsInitialized;
 
