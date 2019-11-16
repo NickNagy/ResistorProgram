@@ -45,15 +45,15 @@ class Circuit {
             float getTotalResistance();
             void computeLocalResistance();
         } CircuitEdge;
-        unsigned int size = 2;
-        vector<vector<shared_ptr<CircuitEdge>>> matrix = vector<vector<shared_ptr<CircuitEdge>>>(size, vector<shared_ptr<CircuitEdge>>(size));
-        void resize(unsigned int newSize);
+        size_t size = 2;
+        vector<vector<shared_ptr<CircuitEdge>>> matrix;
+        void resize(size_t newSize);
         void refresh(unsigned int n1, unsigned int n2);
     public:
         Circuit();
         ~Circuit();
-        char layResistor(unsigned int value, unsigned int n1, unsigned int n2);
-        char removeResistor(unsigned int value, unsigned int n1, unsigned int n2);
+        bool layResistor(unsigned int value, unsigned int n1, unsigned int n2);
+        bool removeResistor(unsigned int value, unsigned int n1, unsigned int n2);
         unsigned int getSize();
         vector<unsigned int> getResistors(unsigned int n1, unsigned int n2);
         float getResistance(unsigned int n1, unsigned int n2);

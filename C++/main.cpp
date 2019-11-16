@@ -9,7 +9,7 @@
 #include "circuit.h"
 #include "circuitgraphics.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 using namespace std;
 
@@ -109,7 +109,6 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
         while (!circuitQueue.empty()) {
             resistorsSeen = circuitQueue.top().resistorsSeen;
             sharedCurrent = circuitQueue.top().circuit; // have to use shared_ptr for pQ.top() to work w/o deletion
-            if (DEBUG) cout << sharedCurrent->toString() << "popped from front of queue.\n";
             circuitQueue.pop();
             resistorsLeft = getRemainingVector(resistors, resistorsSeen);
             for (unsigned int r : resistorsLeft) {
@@ -118,7 +117,7 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
                 for (int i = size-1; i >= 0; i--) {
                     for (int j = size; j > i; j--) {
                         unique_ptr<Circuit> currentCopy = sharedCurrent->copy();
-                        if (currentCopy -> layResistor(r,i,j) && resistorsSeen.size() < maxResistors && circuitHashSet.find(currentCopy->getTotalResistance())==circuitHashSet.end()) {
+                        if (!currentCopy -> layResistor(r,i,j) && resistorsSeen.size() < maxResistors && circuitHashSet.find(currentCopy->getTotalResistance())==circuitHashSet.end()) {
                             float totalResistance = currentCopy->getTotalResistance();
                             difference = abs(totalResistance - targetResistance);
                             if (difference <= targetDifference) {
@@ -128,13 +127,6 @@ unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int m
                             circuitQueue.push(CircuitTracker{difference, resistorsSeen, move(currentCopy)});
                         }
                     }
-                }
-                cout << "queue size = " << circuitQueue.size() << endl;
-                if (DEBUG) {
-                    char next;
-                    cout << "Enter 'n' to keep going.";
-                    cin >> next;
-                    if (next!='n') return NULL;
                 }
             }
         }
