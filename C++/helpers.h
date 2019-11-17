@@ -18,23 +18,21 @@ This file defines some functions that are used by different files and classes in
 #include <vector>
 #include <math.h>
 
-using namespace std;
-
 template<typename Collection>
-string collectionToString(const Collection& collection) {
-    ostringstream oss;
+std::string collectionToString(const Collection& collection) {
+    std::ostringstream oss;
     oss << "{";
     if (!collection.empty()){
-        copy(collection.begin(), collection.end()-1, ostream_iterator<typename Collection::value_type>(oss, ","));
+        copy(collection.begin(), collection.end()-1, std::ostream_iterator<typename Collection::value_type>(oss, ","));
         oss << collection.back();
     }
     oss << "}";
     return oss.str();
 }
-string floatToString(float f, int precision);
-vector<unsigned int> getRemainingVector(vector<unsigned int> original, vector<unsigned int> subtractor);
-int colorToNumber(string s);
-vector<string> getColors(unsigned int resistance);
-unsigned int getResistance(vector<string> colors);
+std::string floatToString(float f, int precision);
+std::vector<unsigned int> getRemainingVector(std::vector<unsigned int> original, std::vector<unsigned int> subtractor);
+int colorToNumber(std::string s);
+std::vector<std::string> getColors(unsigned int resistance);
+unsigned int getResistance(std::vector<std::string> colors);
 
 #endif

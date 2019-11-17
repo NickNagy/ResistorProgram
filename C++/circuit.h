@@ -34,19 +34,18 @@ TotalResistance(n0, n2) = LocalResistance(n0, n2) || NonLocalResistance(n0, n2) 
 #include <memory>
 #include "helpers.h"
 
-using namespace std;
-
+// TODO: keep track of legal moves separately from size, so we don't have to call resize() so frequently
 class Circuit {
     private:
         typedef struct CircuitEdge {
             float localResistance = 0.0;
             float nonLocalResistance = 0.0;
-            vector<unsigned int> resistors;
+            std::vector<unsigned int> resistors;
             float getTotalResistance();
             void computeLocalResistance();
         } CircuitEdge;
         size_t size = 2;
-        vector<vector<shared_ptr<CircuitEdge>>> matrix;
+        std::vector<std::vector<std::shared_ptr<CircuitEdge>>> matrix;
         void resize(size_t newSize);
         void refresh(unsigned int n1, unsigned int n2);
     public:
@@ -55,13 +54,13 @@ class Circuit {
         bool layResistor(unsigned int value, unsigned int n1, unsigned int n2);
         bool removeResistor(unsigned int value, unsigned int n1, unsigned int n2);
         unsigned int getSize();
-        vector<unsigned int> getResistors(unsigned int n1, unsigned int n2);
+        std::vector<unsigned int> getResistors(unsigned int n1, unsigned int n2);
         float getResistance(unsigned int n1, unsigned int n2);
         float getTotalResistance();
         int hashCode();
-        char equals(Circuit * other); // TODO
-        unique_ptr<Circuit> copy();
-        string toString();
+        bool equals(Circuit * other); // TODO
+        std::unique_ptr<Circuit> copy();
+        std::string toString();
 };
 
 #endif

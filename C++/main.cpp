@@ -63,6 +63,8 @@ void explain(Circuit * m){
     } 
 }
 
+// TODO: add back in a bestCandidate ptr, in case nothing found before queue runs out
+// TODO: @ start of function, resize all circuits to maxResistors*maxResistors, so we don't have to keep calling resize()
 // TODO: change some of the data types so floats don't get rounded to ints during operations
 unique_ptr<Circuit> findEquivalentResistanceCircuit (int targetResistance, int maxResistors, float MoE, vector<unsigned int> resistors) {
     unique_ptr<Circuit> current; //= make_unique<Circuit>();

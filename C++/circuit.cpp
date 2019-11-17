@@ -45,9 +45,9 @@ void Circuit::CircuitEdge::computeLocalResistance() {
 // intuition behind matrix: edge(i,i) is meaningless, and other methods check for that;
 //      edge(i,j) = edge(j,i)
 Circuit::Circuit() {
-    matrix = vector<vector<shared_ptr<CircuitEdge>>>(size, vector<shared_ptr<CircuitEdge>>(size));
-    shared_ptr<CircuitEdge> E = make_shared<CircuitEdge>();
-    shared_ptr<CircuitEdge> nullEdge = make_shared<CircuitEdge>(); // just called so b/c it's not to be used at all
+    matrix = std::vector<std::vector<std::shared_ptr<CircuitEdge>>>(size, std::vector<std::shared_ptr<CircuitEdge>>(size));
+    std::shared_ptr<CircuitEdge> E = std::make_shared<CircuitEdge>();
+    std::shared_ptr<CircuitEdge> nullEdge = std::make_shared<CircuitEdge>(); // just called so b/c it's not to be used at all
     matrix[0][0] = nullEdge;
     matrix[0][1] = E;
     matrix[1][0] = E;
@@ -69,7 +69,7 @@ void Circuit::resize(size_t newSize) {
     if (newSize > size) {
         for (unsigned int i = size; i < newSize; i++) {
             for (unsigned int j = 0; j <= i; j++) {
-                matrix[j][i] = make_shared<CircuitEdge>();
+                matrix[j][i] = std::make_shared<CircuitEdge>();
                 if (i!=j) matrix[i][j] = matrix[j][newSize-1];
             }
         }
@@ -126,7 +126,7 @@ bool Circuit::removeResistor(unsigned int value, unsigned int n1, unsigned int n
     // check to make sure that removing the resistor won't cause a hole in the circuit
     int holeCheck = matrix[n1][n2]->resistors.size() - 1;
     if (n2 < size - 1 && holeCheck<1) return 1;
-    vector<unsigned int>::iterator firstInstance = find(matrix[n1][n2]->resistors.begin(), matrix[n1][n2]->resistors.end(), value);
+    std::vector<unsigned int>::iterator firstInstance = find(matrix[n1][n2]->resistors.begin(), matrix[n1][n2]->resistors.end(), value);
     if (firstInstance!=matrix[n1][n2]->resistors.end()) {
         matrix[n1][n2]->resistors.erase(firstInstance);
         matrix[n1][n2]->computeLocalResistance();
@@ -141,7 +141,7 @@ bool Circuit::removeResistor(unsigned int value, unsigned int n1, unsigned int n
 unsigned int Circuit::getSize() { return size; }
 
 // returns the set of resistors directly connected between nodes n1 and n2
-vector<unsigned int> Circuit::getResistors(unsigned int n1, unsigned int n2) { return matrix[n1][n2]->resistors; }
+std::vector<unsigned int> Circuit::getResistors(unsigned int n1, unsigned int n2) { return matrix[n1][n2]->resistors; }
 
 // returns the total equivalent parallel resistance between nodes n1 and n2
 float Circuit::getResistance(unsigned int n1, unsigned int n2) { return matrix[n1][n2]->getTotalResistance(); }
@@ -158,14 +158,14 @@ int Circuit::hashCode() {
 }
 
 // TODO:
-char Circuit::equals(Circuit *other) {
+bool Circuit::equals(Circuit *other) {
     return 0;
 }
 
 // returns a copy of this Circuit object
 // TODO: make a function that we can insert multiple resistors simultaneously rather than having to computeLocalResistance every time a single resistor is inserted
-unique_ptr<Circuit> Circuit::copy() {
-    unique_ptr<Circuit> thisCopy = make_unique<Circuit>(); 
+std::unique_ptr<Circuit> Circuit::copy() {
+    std::unique_ptr<Circuit> thisCopy = std::make_unique<Circuit>(); 
     if (size != 2) thisCopy->resize(size);
     for (unsigned int i = 0; i < size-1; i++) {
         for (unsigned int j = i+1; j < size; j++) {
@@ -181,8 +181,8 @@ unique_ptr<Circuit> Circuit::copy() {
 
 // returns a string representation of the circuit as a 2d-matrix, that visualizes each edge's total equivalent
 // resistance
-string Circuit::toString() {
-    string s = "\nMatrix:\n[[";
+std::string Circuit::toString() {
+    std::string s = "\nMatrix:\n[[";
     for (unsigned int i = 0; i < size-1; i++) {
         for (unsigned int j = 0; j < size-1; j++) {
             if (i == j) {

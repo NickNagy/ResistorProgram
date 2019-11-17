@@ -31,7 +31,7 @@ static const unsigned char grey[] = {128,128,128};
 static const unsigned char white[] = {255,255,255};
 static const unsigned char beige[] = {245,222,179};
 
-void colorFromString(string color);
+void colorFromString(std::string color);
 void drawLine(int startX, int startY, int endX, int endY);
 void drawGrid(unsigned int resistorLength, unsigned int numSpaces);
 void drawResistor(int x, int y, int length, int value);

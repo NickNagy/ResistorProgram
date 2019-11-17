@@ -1,7 +1,5 @@
 #include "circuitgraphics.h"
 
-using namespace std;
-
 void initGraphics(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
@@ -10,7 +8,7 @@ void initGraphics(int argc, char** argv) {
     graphicsInitialized = 1;
 }
 
-void colorFromString(string color) {
+void colorFromString(std::string color) {
     if (!color.compare("Black"))  glColor3ubv(black);
     if (!color.compare("Brown"))  glColor3ubv(brown);
     if (!color.compare("Red"))    glColor3ubv(red);
@@ -37,7 +35,7 @@ void drawGrid(unsigned int resistorLength, unsigned int numSpaces) {
 
 void drawResistor(int x, int y, int length, int value) {
     // drawn line (about 1/3 length)
-    vector<string> resistorColors = getColors(value);
+    std::vector<std::string> resistorColors = getColors(value);
     int bodyStart = x + (length/3);
     int bodyEnd = x + (2*length/3);
     int bodyLength = bodyEnd - bodyStart;
@@ -59,7 +57,7 @@ void drawCircuit() {
     unsigned int nextHeight = 30; // placeholder
     unsigned int circuitSize = circuit -> getSize();
     unsigned int resistorLength = WINDOW_LENGTH / circuitSize;
-    cout << "resistor length: " << resistorLength << endl;
+    std::cout << "resistor length: " << resistorLength << std::endl;
     drawGrid(resistorLength, circuitSize);
     for (int i = 0; i < circuitSize - 1; i++) {
         for (int j = i+1; j < circuitSize; j++) {

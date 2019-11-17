@@ -1,5 +1,5 @@
 #include "globals.h"
 
-unique_ptr<Circuit> circuit;
-vector<unsigned int> resistorCollection;
-char graphicsInitialized = 0;
+std::unique_ptr<Circuit> circuit;
+std::vector<unsigned int> resistorCollection;
+bool graphicsInitialized = 0;
